@@ -1,8 +1,8 @@
-use std::sync::Arc;
+use std::{sync::Arc};
 
 use axum::{extract::State, http::StatusCode, response::IntoResponse, routing::{get, post}, Json, Router};
 
-use crate::{modules::public::user::{application::dto::create_user_dto::CreateUserDto, domain::usecase::UseCase, UserAppState}, shared::presentation::response::DefaultResponse};
+use crate::{modules::public::user::{application::dto::create_user_dto::CreateUserDto, domain::usecase::UseCase, UserAppState}, shared::{infra::error::AppError, presentation::response::DefaultResponse}};
 
 pub fn user_router(app_state: Arc<UserAppState>) -> Router {
   Router::new()
@@ -13,25 +13,17 @@ pub fn user_router(app_state: Arc<UserAppState>) -> Router {
 
 async fn get_all(
     State(s): State<Arc<UserAppState>>
-) -> impl IntoResponse {
-    let resp = s.get_all_users.execute((), s.clone()).await;
+) -> Result<impl IntoResponse, AppError> {
+    let resp = s.get_all_users.execute((), s.clone()).await?;
     
-    if let Err(e) = resp {
-        return serde_json::to_string(&DefaultResponse::new(StatusCode::INTERNAL_SERVER_ERROR, false, e.to_string())).unwrap()
-    }
-    
-    serde_json::to_string(&DefaultResponse::new(StatusCode::OK, true, resp.unwrap())).unwrap()
+    Ok(DefaultResponse::ok(StatusCode::OK, resp).into_response())
 }
 
 async fn create(
   State(s): State<Arc<UserAppState>>,
   Json(dto): Json<CreateUserDto>
-) -> impl IntoResponse {
-    let resp = s.create_user.execute(dto, s.clone()).await;
+) -> Result<impl IntoResponse, AppError> {
+    let resp = s.create_user.execute(dto, s.clone()).await?;
     
-    if let Err(e) = resp {
-        return serde_json::to_string(&DefaultResponse::new(StatusCode::INTERNAL_SERVER_ERROR, false, e.to_string())).unwrap();
-    }
-    
-    serde_json::to_string(&DefaultResponse::new(StatusCode::CREATED, true, "Created!")).unwrap()
+    Ok(DefaultResponse::ok(StatusCode::CREATED, resp).into_response())
 }

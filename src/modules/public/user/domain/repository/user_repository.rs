@@ -1,8 +1,6 @@
-use std::error::Error;
+use crate::{modules::public::user::domain::entity::{address::Address, user::User}, shared::infra::error::AppError};
 
-use crate::modules::public::user::domain::entity::user::User;
-
-pub trait UserRepository<T> {
-  async fn create(&self, user: User) -> Result<T, Box<dyn Error>>;
-  async fn find_all(&self) -> Result<Vec<User>, Box<dyn Error>>;
+pub trait UserRepository {
+  async fn create(&self, user: User, address: Address) -> Result<(), AppError>;
+  async fn find_all(&self) -> Result<Vec<User>, AppError>;
 }

@@ -15,7 +15,7 @@ mod modules;
 mod shared;
 
 pub async fn api() -> Result<(), Box<dyn Error>> {
-    let db_url: String = std::env::var("DATABASE_URL").expect("Coundnt find the DATABASE_URL");
+    let db_url: String = std::env::var("DATABASE_URL").expect("Coundn't find the DATABASE_URL");
     let db = Database::<Pool<Postgres>>::new(&db_url).await;
     sqlx::migrate!("./migrations").run(&*db.pool).await?;
     
@@ -25,7 +25,8 @@ pub async fn api() -> Result<(), Box<dyn Error>> {
         get_all_users: GetAllUsersUseCase
     });
 
-    let app: Router = Router::new().nest("/user", user_router(user_app_state.clone()));
+    let app: Router = Router::new()
+        .nest("/user", user_router(user_app_state.clone()));
 
     let listener = TcpListener::bind("0.0.0.0:3000").await?;
     axum::serve(listener, app).await?;

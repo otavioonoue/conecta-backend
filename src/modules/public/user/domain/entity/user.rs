@@ -9,7 +9,5 @@ pub struct User {
   pub cpf: String,
   pub active: bool,
   pub password: String,
-  
-  pub address_id: Option<String>,
   pub created_at: i64
 }

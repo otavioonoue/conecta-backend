@@ -1,13 +1,20 @@
-CREATE TABLE service_scheduled (
+CREATE TABLE services_scheduled (
   id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  service_id        UUID,
   user_id           UUID,
   consultant_id     UUID,
   service_status_id INT,
   scheduled_at      TIMESTAMP DEFAULT NOW() NOT NULL,
   scheduled_to      TIMESTAMP NOT NULL,
   
+  FOREIGN KEY (service_id) REFERENCES services (id)
+    ON UPDATE CASCADE,
+  
   FOREIGN KEY (user_id) REFERENCES users (id)
     ON DELETE CASCADE
+    ON UPDATE CASCADE,
+
+  FOREIGN KEY (consultant_id) REFERENCES consultants (id)
     ON UPDATE CASCADE,
   
   FOREIGN KEY (service_status_id) REFERENCES service_status (id)

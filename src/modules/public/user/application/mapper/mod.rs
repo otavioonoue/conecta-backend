@@ -3,7 +3,7 @@ use crate::modules::public::user::{application::dto::create_user_dto::CreateUser
 pub struct ApplicationMapper;
 
 impl ApplicationMapper {
-  pub fn to_domain(dto: CreateUserDto) -> User {
+  pub fn to_domain_user(dto: CreateUserDto) -> User {
     let user = User {
       id: String::from(""),
       name: dto.name,
@@ -11,13 +11,28 @@ impl ApplicationMapper {
       phone: dto.phone,
       cpf: dto.cpf,
       active: false,
-      address_id: None,
       password: dto.password,
       created_at: 0
     };
     
     return user;
   }
+  
+  // pub fn to_domain_address(dto: CreateAddressDto, other_fields: CreateAddressFieldsDto) -> Address {
+  //     let address = Address {
+  //         id: String::from(""),
+  //         cep: dto.cep,
+  //         number: dto.number,
+  //         street: other_fields.street,
+  //         neighborhood: other_fields.neighborhood,
+  //         city: other_fields.city,
+  //         state: other_fields.state,
+  //         created_at: 0,
+  //         user_id: String::from("")
+  //     };
+      
+  //     return address;
+  // }
   // pub fn toData(user: User) -> UserModel {
   //   let address: Option<Uuid> = match user.address_id {
   //     Some(v) => Some(Uuid::from_str(&v).unwrap()),

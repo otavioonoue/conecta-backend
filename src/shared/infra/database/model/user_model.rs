@@ -10,6 +10,5 @@ pub struct UserModel {
   pub cpf: String,
   pub active: bool,
   pub password: String,
-  pub address_id: Option<Uuid>,
   pub created_at: NaiveDateTime
 }
