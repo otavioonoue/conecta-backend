@@ -1,7 +1,13 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use validator::Validate;
 
-#[derive(Deserialize, Clone)]
+use crate::shared::infra::validate::validators::{cep_validation, number_validation};
+
+#[derive(Deserialize, Serialize, Clone, Validate)]
 pub struct CreateAddressDto {
-    pub cep: String,
-    pub number: String
+  #[validate(custom(function = cep_validation))]
+  pub cep: String,
+  
+  #[validate(custom(function = number_validation))]
+  pub number: String
 }

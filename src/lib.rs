@@ -11,8 +11,8 @@ use crate::{
   shared::infra::database::db_config::{Database, Db},
 };
 
-mod modules;
-mod shared;
+pub mod modules;
+pub mod shared;
 
 pub async fn api() -> Result<(), Box<dyn Error>> {
   let db_url: String = std::env::var("DATABASE_URL").expect("Coundn't find the DATABASE_URL");

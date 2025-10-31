@@ -3,7 +3,7 @@ use std::sync::Arc;
 use sqlx::{pool::PoolOptions, Pool, Postgres};
 
 pub trait Db {
-  async fn new(conn: &str) -> Self;
+  fn new(conn: &str) -> impl Future<Output = Self>;
 }
 
 #[derive(Clone)]
