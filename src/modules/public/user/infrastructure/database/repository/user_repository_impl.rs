@@ -1,18 +1,20 @@
+use async_trait::async_trait;
 use axum::http::StatusCode;
 use sqlx::{types::Uuid, Pool, Postgres};
 
-use crate::{modules::public::user::{domain::{entity::{address::Address, user::User}, repository::user_repository::UserRepository}, infrastructure::mapper::InfrastructureMapper}, shared::infra::{database::{db_config::Database, model::user_model::UserModel}, error::AppError}};
+use crate::{modules::public::user::{domain::{entity::{address::Address, user::User}, repository::user_repository::UserRepository}, infrastructure::mapper::InfrastructureMapper}, shared::infra::{database::{db_config::{Database, Db}, model::user_model::UserModel}, error::AppError}};
 
-pub struct UserRepositoryImpl<T> {
+pub struct UserRepositoryImpl<T: Db> {
     pub db: T
 }
 
-impl<T> UserRepositoryImpl<T> {
+impl<T: Db> UserRepositoryImpl<T> {
     pub fn new(app_state: T) -> Self {
         UserRepositoryImpl { db: app_state }
     }
 }
 
+#[async_trait]
 impl UserRepository for UserRepositoryImpl<Database<Pool<Postgres>>> {
     async fn create(&self, user: User, address: Address) -> Result<(), AppError> {
         let user_data = InfrastructureMapper::to_data_user(user);

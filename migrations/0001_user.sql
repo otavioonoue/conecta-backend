@@ -4,8 +4,8 @@ CREATE TABLE users (
   email      VARCHAR(255) UNIQUE NOT NULL,
   phone      VARCHAR(13) UNIQUE NOT NULL,
   cpf        VARCHAR(11) UNIQUE NOT NULL,
-  active     BOOLEAN NOT NULL DEFAULT true,
   password   VARCHAR(255) NOT NULL,
+  active     BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMP DEFAULT NOW() NOT NULL
 );
 

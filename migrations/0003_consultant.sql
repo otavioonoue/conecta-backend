@@ -5,9 +5,5 @@ CREATE TABLE consultants (
   phone      VARCHAR(13) UNIQUE NOT NULL,
   password   VARCHAR(255) NOT NULL,
   active     BOOLEAN NOT NULL DEFAULT true,
-  service_id UUID,
-  created_at TIMESTAMP DEFAULT NOW() NOT NULL,
-  
-  FOREIGN KEY (service_id) REFERENCES services (id)
-    ON UPDATE CASCADE
+  created_at TIMESTAMP DEFAULT NOW() NOT NULL
 );
