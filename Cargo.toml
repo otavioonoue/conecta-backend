@@ -17,3 +17,4 @@ thiserror = "2.0.17"
 chrono = { version = "0.4.42", features = ["serde"] }
 reqwest = { version = "0.12.24", features = ["json", "default-tls"] }
 rust_decimal = { version = "1.39.0", features = ["db-postgres", "macros"] }
+uuid = { version = "1.18.1", features = ["serde"] }
