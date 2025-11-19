@@ -54,6 +54,23 @@ impl ConsultantRepository for ConsultantRepositoryImpl<Database<Pool<Postgres>>>
         return Ok(resp.into_iter().map(|cm| InfrastructureMapper::to_domain_consultant(cm)).collect())
     }
     
+    async fn find_all_by_service(&self, service_id: String) -> Result<Vec<Consultant>, AppError> {
+        let resp: Vec<ConsultantModel> = sqlx::query_as::<_, ConsultantModel>(
+            "SELECT * 
+               FROM consultants c
+              INNER JOIN services_consultants sc
+                 ON c.id = sc.consultant_id
+                AND sc.service_id = $1"
+        )
+        .bind(Uuid::from_str(&service_id).unwrap_or_default())
+        .fetch_all(&*self.db.pool)
+        .await
+        .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+        
+        return Ok(resp.into_iter().map(|cm| InfrastructureMapper::to_domain_consultant(cm)).collect())
+    }
+    
+    
     async fn find_by_id(&self, consultant_id: String) -> Result<Option<Consultant>, AppError> {
         let resp = sqlx::query_as::<_, ConsultantModel>(
             "SELECT *

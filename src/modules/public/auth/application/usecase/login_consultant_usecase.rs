@@ -1,23 +1,22 @@
 use std::time::SystemTime;
 
-use axum::http::StatusCode;
 use async_trait::async_trait;
+use axum::http::StatusCode;
 use jsonwebtoken::{Header, encode};
-
 use crate::{modules::public::auth::{AuthAppState, application::{dto::login_dto::LoginDto, usecase::UseCase}, infrastructure::{constants::JWT_TOKEN, jwt::claim::Claims}, presentation::dto::login_response::LoginResponse}, shared::infra::error::AppError};
 
-pub struct LoginUseCase;
+pub struct LoginConsultantUseCase;
 
 #[async_trait]
-impl UseCase<LoginDto, Result<LoginResponse, AppError>> for LoginUseCase {
+impl UseCase<LoginDto, Result<LoginResponse, AppError>> for LoginConsultantUseCase {
     async fn execute(&self, dto: LoginDto, s: AuthAppState) -> Result<LoginResponse, AppError> {
-        let optional_user = s.auth_repository.find_by_email(dto.email.clone()).await?;
+        let optional_consultant = s.auth_repository.find_by_email_consultant(dto.email.clone()).await?;
         
-        let Some(user) = optional_user else {
+        let Some(consultant) = optional_consultant else {
             return Err(AppError::new(StatusCode::NOT_FOUND, "This account doesn't exist"));
         };
         
-        if dto.email != user.email || !s.hash_service.compare(&dto.password, &user.password) {
+        if dto.email != consultant.email || !s.hash_service.compare(&dto.password, &consultant.password) {
             return Err(AppError::new(StatusCode::UNAUTHORIZED, "Invalid credentials"))
         }
         
@@ -28,8 +27,8 @@ impl UseCase<LoginDto, Result<LoginResponse, AppError>> for LoginUseCase {
             + 86400;
         
         let claims = Claims {
-            sub: user.id,
-            email: user.email,
+            sub: consultant.id,
+            email: consultant.email,
             exp
         };
         

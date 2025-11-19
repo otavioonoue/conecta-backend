@@ -20,3 +20,4 @@ reqwest = { version = "0.12.24", features = ["json", "default-tls"] }
 rust_decimal = { version = "1.39.0", features = ["db-postgres", "macros"] }
 uuid = { version = "1.18.1", features = ["serde"] }
 jsonwebtoken = { version = "10.1.0", features = ["aws_lc_rs"] }
+bcrypt = "0.17.1"

@@ -9,6 +9,7 @@ pub fn consultant_router(app_state: ConsultantAppState) -> Router {
         .route("/", get(get_all))
         .route("/service/{consultant_id}", post(add_service))
         .route("/service/{consultant_id}", delete(remove_service))
+        .route("/find_all_by_service/{service_id}", get(find_all_by_service))
         .with_state(app_state)
 }
 
@@ -45,5 +46,13 @@ async fn remove_service(
     Json(dto): Json<RemoveServiceDto>
 ) -> ApiResult<impl IntoResponse> {
     let resp = s.remove_service.execute((dto, consultant_id), s.clone()).await?;
+    Ok(DefaultResponse::ok(StatusCode::OK, resp).into_response())
+}
+
+async fn find_all_by_service(
+    State(s): State<ConsultantAppState>,
+    Path(service_id): Path<String>
+) -> ApiResult<impl IntoResponse> {
+    let resp = s.find_all_by_service.execute(service_id, s.clone()).await?;
     Ok(DefaultResponse::ok(StatusCode::OK, resp).into_response())
 }

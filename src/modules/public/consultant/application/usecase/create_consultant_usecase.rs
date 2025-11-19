@@ -7,7 +7,9 @@ pub struct CreateConsultantUseCase;
 #[async_trait]
 impl UseCase<CreateConsultantDto, Result<String, AppError>> for CreateConsultantUseCase {
   async fn execute(&self, input: CreateConsultantDto, s: ConsultantAppState) -> Result<String, AppError> {
-    let consultant = ApplicationMapper::to_domain_consultant(input);
+    let mut consultant = ApplicationMapper::to_domain_consultant(input);
+    consultant.password = s.hash_service.hash(&consultant.password);
+    
     s.consultant_repository.create(consultant).await?;
     
     Ok(String::from("Created!"))

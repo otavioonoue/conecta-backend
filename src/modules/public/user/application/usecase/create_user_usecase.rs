@@ -13,7 +13,8 @@ impl UseCase<CreateUserDto, Result<String, AppError>> for CreateUserUseCase {
       .await
       .map_err(|e| AppError::new(StatusCode::BAD_REQUEST, format!("Problem with address validation: {}", e.to_string())))?;
   
-    let user = ApplicationMapper::to_domain_user(input);
+    let mut user = ApplicationMapper::to_domain_user(input);
+    user.password = s.hash_service.hash(&user.password);
     
     s.user_repository.create(user, address).await?;
     Ok(String::from("Created!"))

@@ -5,7 +5,8 @@ use crate::{modules::public::auth::{AuthAppState, application::dto::login_dto::L
 
 pub fn auth_router(app_state: AuthAppState) -> Router {
     Router::new()
-        .route("/", post(login))
+        .route("/user", post(login))
+        .route("/consultant", post(login_consultant))
         .route("/a", get(public))
         .route("/", get(private))
         .with_state(app_state)
@@ -21,10 +22,20 @@ async fn login(
     Ok(DefaultResponse::ok(StatusCode::CREATED, resp).into_response())
 }
 
+async fn login_consultant(
+    State(s): State<AuthAppState>,
+    Json(dto): Json<LoginDto>
+) -> ApiResult<impl IntoResponse> {
+    dto.validate()?;
+    let resp = s.login_consultant.execute(dto, s.clone()).await?;
+    
+    Ok(DefaultResponse::ok(StatusCode::CREATED, resp).into_response())
+}
+
 async fn public() -> ApiResult<impl IntoResponse> {
     Ok("public route")
 }
 
 async fn private(claims: Claims) -> ApiResult<impl IntoResponse> {
-    Ok(format!("Hello, {}", claims.email))
+    Ok(format!("Hello, {:#?}", claims))
 }

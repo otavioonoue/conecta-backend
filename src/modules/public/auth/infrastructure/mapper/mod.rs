@@ -3,7 +3,7 @@ use chrono::DateTime;
 use sqlx::types::Uuid;
 
 use crate::{
-    modules::public::{auth::domain::entity::user::User, consultant::domain::entity::consultant::Consultant},
+    modules::public::auth::domain::entity::{consultant::Consultant, user::User},
     shared::infra::database::model::{consultant_model::ConsultantModel, user_model::UserModel},
 };
 
