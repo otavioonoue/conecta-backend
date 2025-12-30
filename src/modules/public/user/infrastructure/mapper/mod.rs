@@ -52,16 +52,16 @@ impl InfrastructureMapper {
         }
     }
     
-    // pub fn to_domain_address(address_data: AddressModel) -> Address {
-    //     Address { 
-    //         id: address_data.id.to_string(), 
-    //         cep: address_data.cep, 
-    //         number: address_data.number, 
-    //         street: address_data.street, 
-    //         neighborhood: address_data.neighborhood, 
-    //         city: address_data.city, 
-    //         state: address_data.state,
-    //         user_id: address_data.user_id.to_string()
-    //     }
-    // }
+    pub fn to_domain_address(address_data: AddressModel) -> Address {
+        Address {
+            id: address_data.id.to_string(), 
+            cep: address_data.cep, 
+            number: address_data.number, 
+            street: address_data.street, 
+            neighborhood: address_data.neighborhood, 
+            city: address_data.city, 
+            state: address_data.state,
+            user_id: address_data.user_id.to_string()
+        }
+    }
 }

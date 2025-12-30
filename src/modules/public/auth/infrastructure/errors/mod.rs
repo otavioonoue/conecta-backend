@@ -1,12 +1,14 @@
 use axum::{Json, response::IntoResponse, http::StatusCode};
+use serde::Serialize;
 use serde_json::json;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub enum AuthError {
     WrongCredentials,
     MissingCredentials,
     TokenCreation,
     InvalidToken,
+    InvalidAccess
 }
 
 impl IntoResponse for AuthError {
@@ -16,6 +18,7 @@ impl IntoResponse for AuthError {
             AuthError::MissingCredentials => (StatusCode::BAD_REQUEST, "Missing credentials"),
             AuthError::TokenCreation => (StatusCode::INTERNAL_SERVER_ERROR, "Token creation error"),
             AuthError::InvalidToken => (StatusCode::BAD_REQUEST, "Invalid token"),
+            AuthError::InvalidAccess => (StatusCode::UNAUTHORIZED, "This account is not active")
         };
         
         let body = Json(json!({

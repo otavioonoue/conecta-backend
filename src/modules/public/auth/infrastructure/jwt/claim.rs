@@ -8,9 +8,24 @@ use crate::modules::public::auth::infrastructure::{constants::JWT_TOKEN, errors:
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Claims {
     pub sub: String,
+    pub name: String,
     pub email: String,
+    pub active: bool,
     pub exp: u64
 }
+
+
+pub fn decode_token(bearer_token: &str) -> Result<Claims, AuthError> {
+    let token_data = decode::<Claims>(bearer_token, &JWT_TOKEN.decoding, &Validation::default())
+        .map_err(|_| AuthError::InvalidToken)?;
+    
+    if !token_data.claims.active {
+        return Err(AuthError::InvalidAccess);
+    }
+    
+    Ok(token_data.claims)
+}
+
 
 impl<S> FromRequestParts<S> for Claims
 where 
@@ -27,9 +42,8 @@ where
             .await
             .map_err(|_| AuthError::InvalidToken)?;
         
-        let token_data = decode::<Claims>(bearer.token(), &JWT_TOKEN.decoding, &Validation::default())
-            .map_err(|_| AuthError::InvalidToken)?;
+        let token = decode_token(bearer.token())?;
         
-        Ok(token_data.claims)
+        Ok(token)
     }
 }

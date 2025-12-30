@@ -4,6 +4,8 @@ CREATE TABLE services_scheduled (
   user_id           UUID,
   consultant_id     UUID,
   service_status_id INT,
+  description       VARCHAR(500),
+  address_id        UUID,
   scheduled_at      TIMESTAMP DEFAULT NOW() NOT NULL,
   scheduled_to      TIMESTAMP NOT NULL,
   
@@ -18,5 +20,8 @@ CREATE TABLE services_scheduled (
     ON UPDATE CASCADE,
   
   FOREIGN KEY (service_status_id) REFERENCES service_status (id)
+    ON UPDATE CASCADE,
+
+  FOREIGN KEY (address_id) REFERENCES addresses (id)
     ON UPDATE CASCADE
 );

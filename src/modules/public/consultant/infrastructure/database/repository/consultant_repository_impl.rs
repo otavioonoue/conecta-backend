@@ -56,7 +56,13 @@ impl ConsultantRepository for ConsultantRepositoryImpl<Database<Pool<Postgres>>>
     
     async fn find_all_by_service(&self, service_id: String) -> Result<Vec<Consultant>, AppError> {
         let resp: Vec<ConsultantModel> = sqlx::query_as::<_, ConsultantModel>(
-            "SELECT * 
+            "SELECT c.id,
+                    c.name,
+                    c.email,
+                    c.phone,
+                    c.password,
+                    c.active,
+                    c.created_at 
                FROM consultants c
               INNER JOIN services_consultants sc
                  ON c.id = sc.consultant_id

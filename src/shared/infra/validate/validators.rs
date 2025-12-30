@@ -1,6 +1,7 @@
 use std::borrow::Cow;
 
-use validator::{ValidateEmail, ValidateLength, ValidationError};
+use regex::Regex;
+use validator::{ValidateEmail, ValidateLength, ValidateRegex, ValidationError};
 
 pub fn name_validation(value: &str) -> Result<(), ValidationError> {
     if !value.validate_length(Some(3), Some(255), None) {
@@ -38,6 +39,12 @@ pub fn phone_validation(value: &str) -> Result<(), ValidationError> {
 }
 
 pub fn cpf_validation(value: &str) -> Result<(), ValidationError> {
+    if !value.validate_regex(Regex::new("^[0-9]{11}$").unwrap()) {
+        let validation = ValidationError::new("cpf_layout");
+        let validation = validation.with_message(Cow::from("The 'cpf' field must contain only digits."));
+        return Err(validation);
+    }
+    
     if !value.validate_length(None, None, Some(11)) {
         let validation = ValidationError::new("size");
         let validation = validation.with_message(Cow::from("The 'cpf' field must be equal to 11 characters long without special characters."));

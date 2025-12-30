@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 
-use crate::{modules::public::service::{ServiceAppState, application::{dto::create_service_dto::CreateServiceDto, mapper::ApplicationMapper, usecase::UseCase}}, shared::infra::error::AppError};
+use crate::{modules::public::service::{application::{dto::create_service_dto::CreateServiceDto, mapper::ApplicationMapper, usecase::UseCase}, appstate::ServiceAppState}, shared::infra::error::AppError};
 
 pub struct CreateServiceUseCase;
 
