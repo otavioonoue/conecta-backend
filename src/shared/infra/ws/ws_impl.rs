@@ -13,7 +13,7 @@ pub struct WsHub {
 
 impl WsHub {
     pub fn new() -> Self {
-        Self {
+        WsHub {
             connections: Arc::new(Mutex::new(HashMap::new())),
         }
     }
@@ -23,6 +23,7 @@ impl WsHub {
 impl Ws for WsHub {
     async fn connect(&self, user_id: String, tx: tokio::sync::mpsc::Sender<Message>) {
         self.connections.lock().await.insert(user_id, tx);
+        println!("Connected");
     }
 
     async fn disconnect(&self, user_id: &String) {
@@ -32,6 +33,7 @@ impl Ws for WsHub {
     async fn send_to_user(&self, user_id: String, payload: serde_json::Value) {
         if let Some(tx) = self.connections.lock().await.get(&user_id) {
             let _ = tx.send(Message::Text(payload.to_string().into())).await;
+            println!("Sended");
         }
     }
 }
