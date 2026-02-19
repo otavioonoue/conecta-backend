@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 
-use crate::{modules::public::consultant::domain::entity::{consultant::Consultant, service::Service}, shared::infra::error::AppError};
+use crate::{modules::public::consultant::domain::entity::{consultant::Consultant, service::Service, service_information::ServiceInformation}, shared::infra::error::AppError};
 
 #[async_trait]
 pub trait ConsultantRepository: Send + Sync {
@@ -12,4 +12,5 @@ pub trait ConsultantRepository: Send + Sync {
   async fn consultant_has_service(&self, consultant_id: String, service_id: String) -> Result<bool, AppError>;
   async fn add_service(&self, consultant_id: String, service_id: String) -> Result<(), AppError>;
   async fn remove_service(&self, consultant_id: String, service_id: String) -> Result<(), AppError>;
+  async fn confirm_scheduled_service(&self, consultant_id: String, service_information: ServiceInformation) -> Result<(), AppError>;
 }

@@ -1,4 +1,4 @@
-use chrono::NaiveDateTime;
+use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 use sqlx::{prelude::FromRow, types::Uuid};
 
@@ -7,5 +7,5 @@ pub struct ServiceModel {
   pub id: Uuid,
   pub name: String,
   pub travel_cost: Decimal,
-  pub created_at: NaiveDateTime
+  pub created_at: DateTime<Utc>
 }

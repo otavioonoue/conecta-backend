@@ -1,4 +1,4 @@
-use chrono::NaiveDateTime;
+use chrono::{DateTime, Utc};
 use sqlx::{prelude::FromRow, types::Uuid};
 
 #[derive(FromRow)]
@@ -10,5 +10,5 @@ pub struct UserModel {
     pub cpf: String,
     pub password: String,
     pub active: bool,
-    pub created_at: NaiveDateTime
+    pub created_at: DateTime<Utc>
 }

@@ -8,7 +8,8 @@ pub enum AuthError {
     MissingCredentials,
     TokenCreation,
     InvalidToken,
-    InvalidAccess
+    InvalidAccess,
+    ProhibitedAccess
 }
 
 impl IntoResponse for AuthError {
@@ -18,7 +19,8 @@ impl IntoResponse for AuthError {
             AuthError::MissingCredentials => (StatusCode::BAD_REQUEST, "Missing credentials"),
             AuthError::TokenCreation => (StatusCode::INTERNAL_SERVER_ERROR, "Token creation error"),
             AuthError::InvalidToken => (StatusCode::BAD_REQUEST, "Invalid token"),
-            AuthError::InvalidAccess => (StatusCode::UNAUTHORIZED, "This account is not active")
+            AuthError::InvalidAccess => (StatusCode::UNAUTHORIZED, "You have to login"),
+            AuthError::ProhibitedAccess => (StatusCode::FORBIDDEN, "You can't access this resource")
         };
         
         let body = Json(json!({

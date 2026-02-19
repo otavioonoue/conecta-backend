@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 
-use crate::{modules::public::consultant::{ConsultantAppState, application::{dto::create_consultant_dto::CreateConsultantDto, mapper::ApplicationMapper, usecase::UseCase}}, shared::infra::error::AppError};
+use crate::{modules::public::consultant::{ application::{dto::create_consultant_dto::CreateConsultantDto, mapper::ApplicationMapper, usecase::usecase::UseCase}, appstate::ConsultantAppState}, shared::infra::error::AppError};
 
 pub struct CreateConsultantUseCase;
 

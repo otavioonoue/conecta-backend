@@ -3,7 +3,7 @@ use axum_extra::{TypedHeader, headers::{Authorization, authorization::Bearer}};
 use jsonwebtoken::{Validation, decode};
 use serde::{Deserialize, Serialize};
 
-use crate::modules::public::auth::infrastructure::{constants::JWT_TOKEN, errors::AuthError};
+use crate::{modules::public::auth::infrastructure::{constants::JWT_TOKEN, errors::AuthError, jwt::role::Role}};
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Claims {
@@ -11,9 +11,9 @@ pub struct Claims {
     pub name: String,
     pub email: String,
     pub active: bool,
+    pub role: Role,
     pub exp: u64
 }
-
 
 pub fn decode_token(bearer_token: &str) -> Result<Claims, AuthError> {
     let token_data = decode::<Claims>(bearer_token, &JWT_TOKEN.decoding, &Validation::default())
@@ -25,7 +25,6 @@ pub fn decode_token(bearer_token: &str) -> Result<Claims, AuthError> {
     
     Ok(token_data.claims)
 }
-
 
 impl<S> FromRequestParts<S> for Claims
 where 
@@ -47,3 +46,27 @@ where
         Ok(token)
     }
 }
+
+pub struct AdminOnly(pub Claims);
+
+impl<S> FromRequestParts<S> for AdminOnly
+where
+    S: Send + Sync,
+{
+    type Rejection = AuthError;
+
+    async fn from_request_parts(
+        parts: &mut axum::http::request::Parts,
+        state: &S,
+    ) -> Result<Self, Self::Rejection> {
+        
+        let claims = Claims::from_request_parts(parts, state).await?;
+
+        if claims.role != Role::ADMIN {
+            return Err(AuthError::ProhibitedAccess);
+        }
+
+        Ok(AdminOnly(claims.clone()))
+    }
+}
+

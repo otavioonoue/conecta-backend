@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use axum::http::StatusCode;
 use sqlx::{Pool, Postgres};
 
-use crate::{modules::public::auth::{domain::{entity::{consultant::Consultant, user::User}, repository::auth_repository::AuthRepository}, infrastructure::mapper::InfrastructureMapper}, shared::infra::{database::{db_config::{Database, Db}, model::user_model::UserModel}, error::AppError}};
+use crate::{modules::public::auth::{domain::{entity::{admin::Admin, consultant::Consultant, user::User}, repository::auth_repository::AuthRepository}, infrastructure::mapper::InfrastructureMapper}, shared::infra::{database::{db_config::{Database, Db}, model::{admin_model::AdminModel, user_model::UserModel}}, error::AppError}};
 use crate::shared::infra::database::model::consultant_model::ConsultantModel;
 
 pub struct AuthRepositoryImpl<T: Db> {
@@ -17,6 +17,21 @@ impl<T: Db> AuthRepositoryImpl<T> {
 
 #[async_trait]
 impl AuthRepository for AuthRepositoryImpl<Database<Pool<Postgres>>> {
+    async fn find_by_email_admin(&self, admin_email: String) -> Result<Option<Admin>, AppError> {
+        let resp = sqlx::query_as::<_, AdminModel>(
+            "SELECT *
+               FROM admins
+              WHERE email = $1
+            "
+        )
+        .bind(admin_email)
+        .fetch_optional(&*self.db.pool)
+        .await
+        .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+        
+        Ok(resp.map(|am| InfrastructureMapper::to_domain_admin(am)))
+    }
+    
     async fn find_by_email_consultant(&self, consultant_email: String) -> Result<Option<Consultant>, AppError> {
         let resp = sqlx::query_as::<_, ConsultantModel>(
             "SELECT *

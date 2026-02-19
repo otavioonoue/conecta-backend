@@ -3,7 +3,7 @@ use std::time::SystemTime;
 use async_trait::async_trait;
 use axum::http::StatusCode;
 use jsonwebtoken::{Header, encode};
-use crate::{modules::public::auth::{AuthAppState, application::{dto::login_dto::LoginDto, usecase::UseCase}, infrastructure::{constants::JWT_TOKEN, jwt::claim::Claims}, presentation::dto::login_response::LoginResponse}, shared::infra::error::AppError};
+use crate::{modules::public::auth::{application::{dto::login_dto::LoginDto, usecase::UseCase}, appstate::AuthAppState, infrastructure::{constants::JWT_TOKEN, jwt::{claim::Claims, role::Role}}, presentation::dto::login_response::LoginResponse}, shared::infra::error::AppError};
 
 pub struct LoginConsultantUseCase;
 
@@ -35,6 +35,7 @@ impl UseCase<LoginDto, Result<LoginResponse, AppError>> for LoginConsultantUseCa
             name: consultant.name,
             email: consultant.email,
             active: consultant.active,
+            role: Role::PROVIDER,
             exp,
         };
         

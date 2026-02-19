@@ -1,16 +1,17 @@
 use std::time::SystemTime;
 
 use async_trait::async_trait;
-use axum::http::StatusCode;
+use http::StatusCode;
 use jsonwebtoken::{Header, encode};
-use crate::{modules::public::auth::{AuthAppState, application::{dto::login_dto::LoginDto, usecase::UseCase}, infrastructure::{constants::JWT_TOKEN, jwt::claim::Claims}, presentation::dto::login_response::LoginResponse}, shared::infra::error::AppError};
 
-pub struct LoginConsultantUseCase;
+use crate::{modules::public::auth::{application::{dto::login_dto::LoginDto, usecase::UseCase}, appstate::AuthAppState, infrastructure::{constants::JWT_TOKEN, jwt::{claim::Claims, role::Role}}, presentation::dto::login_response::LoginResponse}, shared::infra::error::AppError};
+
+pub struct LoginAdminUseCase;
 
 #[async_trait]
-impl UseCase<LoginDto, Result<LoginResponse, AppError>> for LoginConsultantUseCase {
+impl UseCase<LoginDto, Result<LoginResponse, AppError>> for LoginAdminUseCase {
     async fn execute(&self, dto: LoginDto, s: AuthAppState) -> Result<LoginResponse, AppError> {
-        let optional_consultant = s.auth_repository.find_by_email_consultant(dto.email.clone()).await?;
+        let optional_consultant = s.auth_repository.find_by_email_admin(dto.email.clone()).await?;
         
         let Some(consultant) = optional_consultant else {
             return Err(AppError::new(StatusCode::NOT_FOUND, "This account doesn't exist"));
@@ -35,6 +36,7 @@ impl UseCase<LoginDto, Result<LoginResponse, AppError>> for LoginConsultantUseCa
             name: consultant.name,
             email: consultant.email,
             active: consultant.active,
+            role: Role::ADMIN,
             exp,
         };
         

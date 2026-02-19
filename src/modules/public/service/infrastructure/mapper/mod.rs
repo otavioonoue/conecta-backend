@@ -18,8 +18,7 @@ impl InfrastructureMapper {
             name: service.name,
             travel_cost: Decimal::new(service.travel_cost, 2),
             created_at: DateTime::from_timestamp(service.created_at, 0)
-                .unwrap()
-                .naive_utc(),
+                .unwrap(),
         }
     }
     
@@ -29,7 +28,7 @@ impl InfrastructureMapper {
 			id: service_data.id.to_string(),
 			name: service_data.name,
 			travel_cost: travel_cost_cents,
-			created_at: service_data.created_at.and_utc().timestamp(),
+			created_at: service_data.created_at.timestamp(),
 		}
     }
     
@@ -42,8 +41,7 @@ impl InfrastructureMapper {
             password: consultant.password,
             active: consultant.active,
             created_at: DateTime::from_timestamp(consultant.created_at, 0)
-                .unwrap()
-                .naive_utc(),
+                .unwrap(),
         }
     }
     
@@ -55,7 +53,7 @@ impl InfrastructureMapper {
             phone: consultant_data.phone,
             password: consultant_data.password,
             active: consultant_data.active,
-            created_at: consultant_data.created_at.and_utc().timestamp(),
+            created_at: consultant_data.created_at.timestamp(),
         }
     }
     

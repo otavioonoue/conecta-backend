@@ -5,5 +5,5 @@ CREATE TABLE consultants (
   phone      VARCHAR(13) UNIQUE NOT NULL,
   password   VARCHAR(255) NOT NULL,
   active     BOOLEAN NOT NULL DEFAULT true,
-  created_at TIMESTAMP DEFAULT NOW() NOT NULL
+  created_at TIMESTAMPTZ DEFAULT now() NOT NULL
 );

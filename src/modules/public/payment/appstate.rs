@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{modules::public::{auth::infrastructure::jwt::claim::Claims, payment::{application::{dto::{create_visit_payment::CreateVisitPaymentDto, payment_response::PaymentResponse}, service::payment_service::PaymentService, usecase::usecase::UseCase}, domain::repository::{payment_repository::PaymentRepository, service_repository::ServiceRepository}}}, shared::infra::{error::AppError, service::notification_service::NotificationService}};
+use crate::{modules::public::{auth::infrastructure::jwt::claim::Claims, payment::{application::{dto::{create_visit_payment::CreateVisitPaymentDto, payment_response::PaymentResponse, webhook_event_request::WebhookEventRequest}, service::payment_service::PaymentService, usecase::usecase::UseCase}, domain::repository::{payment_repository::PaymentRepository, service_repository::ServiceRepository}}}, shared::infra::{error::AppError, service::notification_service::NotificationService}};
 
 #[derive(Clone)]
 pub struct PaymentAppState {
@@ -9,5 +9,6 @@ pub struct PaymentAppState {
     pub service_repository: Arc<dyn ServiceRepository>,
     pub notification_service: Arc<dyn NotificationService>,
     
-    pub create_visit_payment: Arc<dyn UseCase<(Claims, CreateVisitPaymentDto), Result<PaymentResponse, AppError>>> 
+    pub create_visit_payment: Arc<dyn UseCase<(Claims, CreateVisitPaymentDto), Result<PaymentResponse, AppError>>>,
+    pub wh_payment_notification: Arc<dyn UseCase<WebhookEventRequest, Result<(), AppError>>>
 }

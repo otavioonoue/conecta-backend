@@ -1,14 +1,14 @@
 use std::{error::Error, sync::Arc};
 
-use axum::{Router, extract::{Query, State, WebSocketUpgrade}, response::IntoResponse, routing::{get, post}};
+use axum::{Router, extract::{Query, State, WebSocketUpgrade}, response::IntoResponse, routing::get};
 use http::StatusCode;
 use serde::Deserialize;
 use sqlx::{Pool, Postgres};
 use tokio::net::TcpListener;
 
 use crate::{
-  modules::public::{auth::{AuthAppState, application::usecase::{login_consultant_usecase::LoginConsultantUseCase, login_usecase::LoginUseCase}, infrastructure::{database::repository::auth_repository_impl::AuthRepositoryImpl, jwt::claim::{Claims, decode_token}}, presentation::controller::auth_controller::auth_router}, consultant::{ConsultantAppState, application::usecase::{add_service_consultant_usecase::AddServiceConsultantUseCase, create_consultant_usecase::CreateConsultantUseCase, find_all_by_service_usecase::FindAllByServiceUseCase, get_all_consultant_usecase::GetAllConsultantsUseCase, remove_service_consultant_usecase::RemoveServiceConsultantUseCase}, infrastructure::database::repository::consultant_repository_impl::ConsultantRepositoryImpl, presentation::controller::consultant_controller::consultant_router}, payment::{application::usecase::create_visit_payment_usecase::CreateVisitPaymentUseCase, appstate::PaymentAppState, infrastructure::{database::repository::{payment_repository_impl::PaymentRepositoryImpl, service_repository_impl::ServiceRepositoryImpl as PaymentServiceRepositoryImpl}, service::payment_service_impl::PaymentServiceAsaasImpl}, presentation::controller::payment_controller::payment_router}, service::{application::usecase::{create_service_usecase::CreateServiceUseCase, get_all_service_usecase::GetAllServicesUseCase, schedule_service_usecase::ScheduleServiceUseCase}, appstate::ServiceAppState, infrastructure::database::repository::{address_repository_impl::AddressRepositoryImpl as ServiceAddressRepositoryImpl, consultant_repository_impl::ConsultantRepositoryImpl as ConsultantServiceRepositoryImpl, service_repository_impl::ServiceRepositoryImpl}, presentation::controller::service_controller::service_router}, user::{
-    UserAppState, application::usecase::{create_address_usecase::CreateAddressUseCase, create_user_usecase::CreateUserUseCase, get_all_addresses_usecase::GetAllAddressesUseCase, get_all_users_usecase::GetAllUsersUseCase}, infrastructure::database::repository::{address_repository_impl::AddressRepositoryImpl, user_repository_impl::UserRepositoryImpl}, presentation::controller::user_controller::user_router
+  modules::public::{auth::{application::usecase::{login_admin_usecase::LoginAdminUseCase, login_consultant_usecase::LoginConsultantUseCase, login_usecase::LoginUseCase}, appstate::AuthAppState, infrastructure::{database::repository::auth_repository_impl::AuthRepositoryImpl, jwt::claim::decode_token}, presentation::controller::auth_controller::auth_router}, consultant::{application::usecase::{add_service_consultant_usecase::AddServiceConsultantUseCase, confirm_service_scheduled_usecase::ConfirmServiceScheduledUseCase, create_budget_usecase::CreateBudgetUseCase, create_consultant_usecase::CreateConsultantUseCase, find_all_by_service_usecase::FindAllByServiceUseCase, get_all_consultant_usecase::GetAllConsultantsUseCase, remove_service_consultant_usecase::RemoveServiceConsultantUseCase}, appstate::ConsultantAppState, infrastructure::database::repository::{consultant_repository_impl::ConsultantRepositoryImpl, service_repository_impl::ServiceRepositoryImpl as ServiceConsultantRepositoryImpl}, presentation::controller::consultant_controller::consultant_router}, payment::{application::usecase::{create_visit_payment_usecase::CreateVisitPaymentUseCase, webhook_payment_notification_usecase::WebHookPaymentNotificationUseCase}, appstate::PaymentAppState, infrastructure::{database::repository::{payment_repository_impl::PaymentRepositoryImpl, service_repository_impl::ServiceRepositoryImpl as PaymentServiceRepositoryImpl}, service::payment_service_impl::PaymentServiceAsaasImpl}, presentation::controller::payment_controller::payment_router}, service::{application::usecase::{create_service_usecase::CreateServiceUseCase, get_all_service_usecase::GetAllServicesUseCase, schedule_service_usecase::ScheduleServiceUseCase}, appstate::ServiceAppState, infrastructure::database::repository::{address_repository_impl::AddressRepositoryImpl as ServiceAddressRepositoryImpl, consultant_repository_impl::ConsultantRepositoryImpl as ConsultantServiceRepositoryImpl, service_repository_impl::ServiceRepositoryImpl}, presentation::controller::service_controller::service_router}, user::{
+    UserAppState, application::usecase::{create_address_usecase::CreateAddressUseCase, create_user_usecase::CreateUserUseCase, get_all_addresses_usecase::GetAllAddressesUseCase, get_all_users_usecase::GetAllUsersUseCase, update_budget_status_usecase::UpdateBudgetStatusUseCase}, infrastructure::database::repository::{address_repository_impl::AddressRepositoryImpl, service_repository_impl::ServiceRepositoryImpl as UserServiceRepositoryImpl, user_repository_impl::UserRepositoryImpl}, presentation::controller::user_controller::user_router
   }},
   shared::{infra::{database::db_config::{Database, Db}, error::AppError, service::{hash_service::HashServiceImpl, notification_service::NotificationServiceImpl}, ws::ws_impl::WsHub}, presentation::{controller::ws_controller::handle_socket, types::ApiResult}}
 };
@@ -27,27 +27,35 @@ pub async fn api() -> Result<(), Box<dyn Error>> {
         auth_repository: Arc::new(AuthRepositoryImpl::new(db.clone())),
         hash_service: Arc::new(HashServiceImpl::new()),
         login: Arc::new(LoginUseCase),
-        login_consultant: Arc::new(LoginConsultantUseCase)
+        login_consultant: Arc::new(LoginConsultantUseCase),
+        login_admin: Arc::new(LoginAdminUseCase)
     };
     
     let user_app_state = UserAppState {
         user_repository: Arc::new(UserRepositoryImpl::new(db.clone())),
         address_repository: Arc::new(AddressRepositoryImpl::new(db.clone())),
+        service_repository: Arc::new(UserServiceRepositoryImpl::new(db.clone())),
         hash_service: Arc::new(HashServiceImpl::new()),
+        notification_service: Arc::new(NotificationServiceImpl::new(db.clone(), hub.clone())),
         create_user: Arc::new(CreateUserUseCase),
         get_all_users: Arc::new(GetAllUsersUseCase),
         get_all_addresses: Arc::new(GetAllAddressesUseCase),
-        create_address: Arc::new(CreateAddressUseCase)
+        create_address: Arc::new(CreateAddressUseCase),
+        update_budget_status: Arc::new(UpdateBudgetStatusUseCase)
     };
     
     let consultant_app_state = ConsultantAppState {
         consultant_repository: Arc::new(ConsultantRepositoryImpl::new(db.clone())),
+        service_repository: Arc::new(ServiceConsultantRepositoryImpl::new(db.clone())),
+        notification_service: Arc::new(NotificationServiceImpl::new(db.clone(), hub.clone())),
         hash_service: Arc::new(HashServiceImpl::new()),
         get_all_consultant: Arc::new(GetAllConsultantsUseCase),
         create_consultant: Arc::new(CreateConsultantUseCase),
         add_service: Arc::new(AddServiceConsultantUseCase),
         remove_service: Arc::new(RemoveServiceConsultantUseCase),
-        find_all_by_service: Arc::new(FindAllByServiceUseCase)
+        find_all_by_service: Arc::new(FindAllByServiceUseCase),
+        confirm_scheduled_service: Arc::new(ConfirmServiceScheduledUseCase),
+        create_service_budget: Arc::new(CreateBudgetUseCase)
     };
     
     let service_app_state = ServiceAppState {
@@ -64,7 +72,8 @@ pub async fn api() -> Result<(), Box<dyn Error>> {
         payment_repository: Arc::new(PaymentRepositoryImpl::new(db.clone())),
         service_repository: Arc::new(PaymentServiceRepositoryImpl::new(db.clone())),
         notification_service: Arc::new(NotificationServiceImpl::new(db.clone(), hub.clone())),
-        create_visit_payment: Arc::new(CreateVisitPaymentUseCase)
+        create_visit_payment: Arc::new(CreateVisitPaymentUseCase),
+        wh_payment_notification: Arc::new(WebHookPaymentNotificationUseCase)
     };
     
     let app: Router = Router::new()

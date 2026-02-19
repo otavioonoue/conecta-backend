@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use axum::http::StatusCode;
 use sqlx::{types::Uuid, Pool, Postgres};
 
-use crate::{modules::public::consultant::{domain::{entity::{consultant::Consultant, service::Service}, repository::consultant_repository::ConsultantRepository}, infrastructure::mapper::InfrastructureMapper}, shared::infra::{database::{db_config::{Database, Db}, model::{consultant_model::ConsultantModel, service_model::ServiceModel}}, error::AppError}};
+use crate::{modules::public::consultant::{domain::{entity::{consultant::Consultant, service::Service, service_information::ServiceInformation}, repository::consultant_repository::ConsultantRepository}, infrastructure::mapper::InfrastructureMapper}, shared::infra::{database::{db_config::{Database, Db}, model::{consultant_model::ConsultantModel, service_model::ServiceModel}}, error::AppError}};
 
 pub struct ConsultantRepositoryImpl<T: Db> {
   pub db: T
@@ -154,6 +154,24 @@ impl ConsultantRepository for ConsultantRepositoryImpl<Database<Pool<Postgres>>>
         .execute(&*self.db.pool)
         .await
         .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, format!("Couldn't delete services_consultants: {}", e.to_string())))?;
+        
+        Ok(())
+    }
+    
+    async fn confirm_scheduled_service(&self, consultant_id: String, service_information: ServiceInformation) -> Result<(), AppError> {
+        let data_service_information = InfrastructureMapper::to_data_service_information(service_information);
+        sqlx::query(
+            "UPDATE service_information si
+                SET service_step_id = $1,
+                    consultant_id = $2
+              WHERE si.id = $3"
+        )
+        .bind(data_service_information.service_step_id)
+        .bind(Uuid::from_str(&consultant_id).unwrap_or_default())
+        .bind(data_service_information.id)
+        .execute(&*self.db.pool)
+        .await
+        .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
         
         Ok(())
     }

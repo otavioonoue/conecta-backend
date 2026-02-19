@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use axum::http::StatusCode;
-use crate::{modules::public::consultant::{ConsultantAppState, application::{dto::remove_service_dto::RemoveServiceDto, usecase::UseCase}}, shared::infra::error::AppError};
+use crate::{modules::public::consultant::{application::{dto::remove_service_dto::RemoveServiceDto, usecase::usecase::UseCase}, appstate::ConsultantAppState}, shared::infra::error::AppError};
 
 pub struct RemoveServiceConsultantUseCase;
 

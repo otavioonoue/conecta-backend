@@ -3,8 +3,8 @@ use chrono::DateTime;
 use sqlx::types::Uuid;
 
 use crate::{
-    modules::public::auth::domain::entity::{consultant::Consultant, user::User},
-    shared::infra::database::model::{consultant_model::ConsultantModel, user_model::UserModel},
+    modules::public::auth::domain::entity::{admin::Admin, consultant::Consultant, user::User},
+    shared::infra::database::model::{admin_model::AdminModel, consultant_model::ConsultantModel, user_model::UserModel},
 };
 
 pub struct InfrastructureMapper;
@@ -20,8 +20,7 @@ impl InfrastructureMapper {
             active: user.active,
             password: user.password,
             created_at: DateTime::from_timestamp(user.created_at, 0)
-                .unwrap()
-                .naive_utc(),
+                .unwrap(),
         }
     }
 
@@ -34,7 +33,7 @@ impl InfrastructureMapper {
             cpf: user_data.cpf,
             active: user_data.active,
             password: user_data.password,
-            created_at: user_data.created_at.and_utc().timestamp(),
+            created_at: user_data.created_at.timestamp(),
         }
     }
     
@@ -47,8 +46,7 @@ impl InfrastructureMapper {
             password: consultant.password,
             active: consultant.active,
             created_at: DateTime::from_timestamp(consultant.created_at, 0)
-                .unwrap()
-                .naive_utc(),
+                .unwrap(),
         }
     }
     
@@ -60,7 +58,32 @@ impl InfrastructureMapper {
             phone: consultant_data.phone,
             password: consultant_data.password,
             active: consultant_data.active,
-            created_at: consultant_data.created_at.and_utc().timestamp(),
+            created_at: consultant_data.created_at.timestamp(),
+        }
+    }
+    
+    pub fn to_data_admin(admin: Admin) -> AdminModel {
+        AdminModel {
+            id: Uuid::from_str(&admin.id).unwrap_or_default(),
+            name: admin.name,
+            email: admin.email,
+            phone: admin.phone,
+            password: admin.password,
+            active: admin.active,
+            created_at: DateTime::from_timestamp(admin.created_at, 0)
+                .unwrap(),
+        }
+    }
+    
+    pub fn to_domain_admin(admin_data: AdminModel) -> Admin {
+        Admin {
+            id: admin_data.id.to_string(),
+            name: admin_data.name,
+            email: admin_data.email,
+            phone: admin_data.phone,
+            password: admin_data.password,
+            active: admin_data.active,
+            created_at: admin_data.created_at.timestamp(),
         }
     }
 }

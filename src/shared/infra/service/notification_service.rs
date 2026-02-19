@@ -28,9 +28,11 @@ impl<T: Db> NotificationServiceImpl<T> {
 impl NotificationService for NotificationServiceImpl<Database<Pool<Postgres>>> {
     async fn send(&self, mut notification: Notification, new_status: String) -> Result<(), AppError> {
         let (title, body) = match new_status.as_str() {
-            "PAYMENT_VISIT_DONE" => ("Pagamento realizado", ""),
+            "PAYMENT_VISIT_CONFIRMED" => ("Pagamento realizado", ""),
             "VISIT_CONFIRMED" => ("Visita confirmada", ""),
-            "BUDGET" => ("Orçamento", ""),
+            "BUDGET_RECEIVED" => ("Orçamento recebido", ""),
+            "BUDGET_CONFIRMED" => ("Orçamento confirmado", ""),
+            "BUDGET_DENIED" => ("Orçamento negado", ""),
             "Ordem de serviço" => ("Ordem de serviço", ""),
             _ => ("Pedido atualizado", "O status do pedido mudou"),
         };

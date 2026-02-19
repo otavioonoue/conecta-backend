@@ -1,0 +1,13 @@
+use chrono::{DateTime, Utc};
+use sqlx::{prelude::FromRow, types::Uuid};
+
+#[derive(FromRow)]
+pub struct AdminModel {
+    pub id: Uuid,
+    pub name: String,
+    pub email: String,
+    pub phone: String,
+    pub password: String,
+    pub active: bool,
+    pub created_at: DateTime<Utc>
+}

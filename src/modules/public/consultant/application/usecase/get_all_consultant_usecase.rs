@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 
-use crate::{modules::public::consultant::{ConsultantAppState, application::usecase::UseCase, domain::{entity::consultant::Consultant}}, shared::infra::error::AppError};
+use crate::{modules::public::consultant::{application::usecase::usecase::UseCase, appstate::ConsultantAppState, domain::entity::consultant::Consultant}, shared::infra::error::AppError};
 
 pub struct GetAllConsultantsUseCase;
 

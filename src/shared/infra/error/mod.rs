@@ -3,7 +3,7 @@ use axum::
 ;
 use serde::{Serialize, Serializer};
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct AppError {
     #[serde(serialize_with = "status_code_as_u16")]
     pub code: StatusCode,

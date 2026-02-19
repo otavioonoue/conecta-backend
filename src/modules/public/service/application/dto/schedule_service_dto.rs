@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 #[derive(Deserialize, Clone, Validate)]
@@ -11,4 +11,9 @@ pub struct ScheduleServiceDto {
     pub address_id: String,
     
     pub schedule_to: i64
+}
+
+#[derive(Serialize, Clone, Validate)]
+pub struct ScheduleServiceResponse {
+    pub service_information_id: String
 }

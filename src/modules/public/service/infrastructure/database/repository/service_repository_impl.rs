@@ -5,7 +5,7 @@ use axum::http::StatusCode;
 use chrono::DateTime;
 use sqlx::{types::Uuid, Pool, Postgres};
 
-use crate::{modules::public::service::{domain::{entity::{service::Service, service_schedule::ServiceSchedule}, repository::service_repository::ServiceRepository}, infrastructure::mapper::InfrastructureMapper}, shared::infra::{database::{db_config::{Database, Db}, model::service_model::ServiceModel}, error::AppError}};
+use crate::{modules::public::service::{domain::{entity::{service::Service, service_information::ServiceInformation, service_schedule::ServiceSchedule}, repository::service_repository::ServiceRepository}, infrastructure::mapper::InfrastructureMapper}, shared::infra::{database::{db_config::{Database, Db}, model::service_model::ServiceModel}, error::AppError}};
 
 pub struct ServiceRepositoryImpl<T: Db> {
     pub db: T
@@ -65,32 +65,52 @@ impl ServiceRepository for ServiceRepositoryImpl<Database<Pool<Postgres>>> {
         return Ok(resp.map(|s| InfrastructureMapper::to_domain_service(s)))
     }
 
-    async fn schedule(&self, service_schedule: ServiceSchedule) -> Result<(), AppError> {
-        sqlx::query(
-            "INSERT INTO services_scheduled (
-               	service_id,
-               	user_id,
-               	consultant_id,
-               	service_status_id,
-                description,
-                address_id,
-               	scheduled_to
+    async fn schedule(&self, service_information: ServiceInformation, service_schedule: ServiceSchedule) -> Result<String, AppError> {
+        let mut transaction = self.db.pool.begin().await
+            .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+        
+        let service_information_id: Uuid = sqlx::query_scalar(
+            "INSERT INTO service_information (
+                user_id,
+                service_id,
+                consultant_id,
+                service_step_id,
+                address_id
             ) VALUES (
-               	$1, $2,	$3,	$4,	$5, $6, $7
-            )"
+                $1, $2, $3, $4, $5
+            ) RETURNING id"
         )
-        .bind(Uuid::from_str(&service_schedule.service_id).unwrap_or_default())
-        .bind(Uuid::from_str(&service_schedule.user_id).unwrap_or_default())
-        .bind(Uuid::from_str(&service_schedule.consultant_id).unwrap_or_default())
-        .bind(service_schedule.service_status_id)
-        .bind(service_schedule.description)
-        .bind(Uuid::from_str(&service_schedule.address_id).unwrap_or_default())
-        .bind(DateTime::from_timestamp_secs(service_schedule.scheduled_to))
-        .execute(&*self.db.pool)
+        .bind(Uuid::from_str(&service_information.user_id).unwrap_or_default())
+        .bind(Uuid::from_str(&service_information.service_id).unwrap_or_default())
+        .bind(None::<Uuid>)
+        .bind(service_information.service_step_id)
+        .bind(Uuid::from_str(&service_information.address_id).unwrap_or_default())
+        .fetch_one(&mut *transaction)
         .await
         .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
         
-        return Ok(())
+        sqlx::query(
+            "INSERT INTO services_scheduled (
+                service_information_id,
+               	service_status_id,
+                description,
+               	scheduled_to
+            ) VALUES (
+               	$1, $2,	$3, $4
+            )"
+        )
+        .bind(service_information_id)
+        .bind(service_schedule.service_status_id)
+        .bind(service_schedule.description)
+        .bind(DateTime::from_timestamp_secs(service_schedule.scheduled_to))
+        .execute(&mut *transaction)
+        .await
+        .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+        
+        transaction.commit().await
+            .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+        
+        Ok(service_information_id.to_string())
     }
     
     async fn find_by_user(&self, user_id: String) -> Result<(), AppError> {

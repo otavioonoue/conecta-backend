@@ -1,4 +1,4 @@
-use chrono::NaiveDateTime;
+use chrono::{DateTime, Utc};
 use sqlx::{prelude::FromRow, types::Uuid};
 
 #[derive(FromRow)]
@@ -8,5 +8,5 @@ pub struct NotificationModel {
 	pub title: String,
 	pub body: String,
 	pub read: bool,
-	pub created_at: NaiveDateTime
+	pub created_at: DateTime<Utc>
 }
