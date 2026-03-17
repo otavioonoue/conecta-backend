@@ -4,8 +4,8 @@ use chrono::DateTime;
 use sqlx::types::Uuid;
 
 use crate::{
-    modules::public::consultant::domain::entity::{consultant::Consultant, service::Service, service_budget::ServiceBudget, service_information::ServiceInformation},
-    shared::infra::{database::model::{consultant_model::ConsultantModel, service_budget_model::ServiceBudgetModel, service_information_model::ServiceInformationModel, service_model::ServiceModel}, helpers::currency::CurrencyHelper},
+    modules::public::consultant::domain::entity::{consultant::Consultant, service::Service, service_budget::ServiceBudget, service_information::ServiceInformation, service_order::ServiceOrder},
+    shared::infra::{database::model::{consultant_model::ConsultantModel, service_budget_model::ServiceBudgetModel, service_information_model::ServiceInformationModel, service_model::ServiceModel, service_order_model::ServiceOrderModel}, helpers::currency::CurrencyHelper},
 };
 
 pub struct InfrastructureMapper;
@@ -95,6 +95,33 @@ impl InfrastructureMapper {
             description: service_budget_data.description,
             service_budget_status_id: service_budget_data.service_budget_status_id,
             created_at: service_budget_data.created_at.timestamp(),
+        }
+    }
+    
+    pub fn to_data_service_order(service_order: ServiceOrder) -> ServiceOrderModel {
+        ServiceOrderModel {
+            id: Uuid::from_str(&service_order.id).unwrap_or_default(),
+            service_information_id: Uuid::from_str(&service_order.service_information_id).unwrap_or_default(),
+            final_cost: Decimal::new(service_order.final_cost, 2),
+            description: service_order.description,
+            service_order_status_id: service_order.service_order_status_id,
+            scheduled_to: DateTime::from_timestamp(service_order.scheduled_to, 0)
+                .unwrap_or_default(),
+            scheduled_at: DateTime::from_timestamp(service_order.scheduled_at, 0)
+                .unwrap_or_default()
+        }
+    }
+    
+    pub fn to_domain_service_order(service_order_model: ServiceOrderModel) -> ServiceOrder {
+        let final_cost = CurrencyHelper::to_cents(service_order_model.final_cost);
+        ServiceOrder {
+            id: service_order_model.id.to_string(),
+            service_information_id: service_order_model.service_information_id.to_string(),
+            final_cost: final_cost,
+            description: service_order_model.description,
+            service_order_status_id: service_order_model.service_order_status_id,
+            scheduled_to: service_order_model.scheduled_to.timestamp(),
+            scheduled_at: service_order_model.scheduled_at.timestamp()
         }
     }
 }

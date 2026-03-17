@@ -1,7 +1,7 @@
 use axum::{extract::State, http::StatusCode, response::IntoResponse, routing::{get, post}, Json, Router};
 use validator::Validate;
 
-use crate::{modules::public::{auth::infrastructure::jwt::claim::Claims, service::{application::dto::{create_service_dto::CreateServiceDto, schedule_service_dto::ScheduleServiceDto}, appstate::ServiceAppState}}, shared::presentation::{response::DefaultResponse, types::ApiResult}};
+use crate::{modules::public::{auth::infrastructure::jwt::claim::{AdminOnly, Claims}, service::{application::dto::{create_service_dto::CreateServiceDto, schedule_service_dto::ScheduleServiceDto}, appstate::ServiceAppState}}, shared::presentation::{response::DefaultResponse, types::ApiResult}};
 
 pub fn service_router(app_state: ServiceAppState) -> Router {
     Router::new()
@@ -19,15 +19,8 @@ async fn get_all(
     Ok(DefaultResponse::ok(StatusCode::OK, resp).into_response())
 }
 
-async fn get_by_user(
-    State(s): State<ServiceAppState>
-) -> ApiResult<impl IntoResponse> {
-    let resp = ();
-    
-    Ok(DefaultResponse::ok(StatusCode::OK, resp).into_response())
-}
-
 async fn create(
+    _: AdminOnly,
     State(s): State<ServiceAppState>,
     Json(dto): Json<CreateServiceDto>
 ) -> ApiResult<impl IntoResponse> {

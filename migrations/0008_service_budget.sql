@@ -20,6 +20,6 @@ CREATE TABLE services_budgets (
 );
 
 INSERT INTO services_budgets_status (id, name) VALUES 
-(1, 'PENDENTE'),
-(2, 'ACEITO'),
-(3, 'DECLINADO')
+(1, 'PENDING'),
+(2, 'ACCEPTED'),
+(3, 'REJECTED')

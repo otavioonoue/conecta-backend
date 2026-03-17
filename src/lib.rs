@@ -7,10 +7,10 @@ use sqlx::{Pool, Postgres};
 use tokio::net::TcpListener;
 
 use crate::{
-  modules::public::{auth::{application::usecase::{login_admin_usecase::LoginAdminUseCase, login_consultant_usecase::LoginConsultantUseCase, login_usecase::LoginUseCase}, appstate::AuthAppState, infrastructure::{database::repository::auth_repository_impl::AuthRepositoryImpl, jwt::claim::decode_token}, presentation::controller::auth_controller::auth_router}, consultant::{application::usecase::{add_service_consultant_usecase::AddServiceConsultantUseCase, confirm_service_scheduled_usecase::ConfirmServiceScheduledUseCase, create_budget_usecase::CreateBudgetUseCase, create_consultant_usecase::CreateConsultantUseCase, find_all_by_service_usecase::FindAllByServiceUseCase, get_all_consultant_usecase::GetAllConsultantsUseCase, remove_service_consultant_usecase::RemoveServiceConsultantUseCase}, appstate::ConsultantAppState, infrastructure::database::repository::{consultant_repository_impl::ConsultantRepositoryImpl, service_repository_impl::ServiceRepositoryImpl as ServiceConsultantRepositoryImpl}, presentation::controller::consultant_controller::consultant_router}, payment::{application::usecase::{create_visit_payment_usecase::CreateVisitPaymentUseCase, webhook_payment_notification_usecase::WebHookPaymentNotificationUseCase}, appstate::PaymentAppState, infrastructure::{database::repository::{payment_repository_impl::PaymentRepositoryImpl, service_repository_impl::ServiceRepositoryImpl as PaymentServiceRepositoryImpl}, service::payment_service_impl::PaymentServiceAsaasImpl}, presentation::controller::payment_controller::payment_router}, service::{application::usecase::{create_service_usecase::CreateServiceUseCase, get_all_service_usecase::GetAllServicesUseCase, schedule_service_usecase::ScheduleServiceUseCase}, appstate::ServiceAppState, infrastructure::database::repository::{address_repository_impl::AddressRepositoryImpl as ServiceAddressRepositoryImpl, consultant_repository_impl::ConsultantRepositoryImpl as ConsultantServiceRepositoryImpl, service_repository_impl::ServiceRepositoryImpl}, presentation::controller::service_controller::service_router}, user::{
-    UserAppState, application::usecase::{create_address_usecase::CreateAddressUseCase, create_user_usecase::CreateUserUseCase, get_all_addresses_usecase::GetAllAddressesUseCase, get_all_users_usecase::GetAllUsersUseCase, update_budget_status_usecase::UpdateBudgetStatusUseCase}, infrastructure::database::repository::{address_repository_impl::AddressRepositoryImpl, service_repository_impl::ServiceRepositoryImpl as UserServiceRepositoryImpl, user_repository_impl::UserRepositoryImpl}, presentation::controller::user_controller::user_router
+  modules::public::{auth::{application::usecase::{login_admin_usecase::LoginAdminUseCase, login_consultant_usecase::LoginConsultantUseCase, login_usecase::LoginUseCase}, appstate::AuthAppState, infrastructure::{database::repository::auth_repository_impl::AuthRepositoryImpl, jwt::claim::decode_token}, presentation::controller::auth_controller::auth_router}, consultant::{application::usecase::{add_service_consultant_usecase::AddServiceConsultantUseCase, confirm_service_scheduled_usecase::ConfirmServiceScheduledUseCase, create_budget_usecase::CreateBudgetUseCase, create_consultant_usecase::CreateConsultantUseCase, create_service_order_usecase::CreateServiceOrderUseCase, find_all_by_service_usecase::FindAllByServiceUseCase, finish_order_service_usecase::FinishOrderServiceUseCase, get_all_consultant_usecase::GetAllConsultantsUseCase, remove_service_consultant_usecase::RemoveServiceConsultantUseCase}, appstate::ConsultantAppState, infrastructure::database::repository::{consultant_repository_impl::ConsultantRepositoryImpl, service_repository_impl::ServiceRepositoryImpl as ServiceConsultantRepositoryImpl}, presentation::controller::consultant_controller::consultant_router}, payment::{application::usecase::{create_budget_payment_usecase::CreateBudgetPaymentUseCase, create_visit_payment_usecase::CreateVisitPaymentUseCase, webhook_payment_notification_usecase::WebHookPaymentNotificationUseCase}, appstate::PaymentAppState, infrastructure::{database::repository::{payment_repository_impl::PaymentRepositoryImpl, service_repository_impl::ServiceRepositoryImpl as PaymentServiceRepositoryImpl}, service::payment_service_impl::PaymentServiceAsaasImpl}, presentation::controller::payment_controller::payment_router}, service::{application::usecase::{create_service_usecase::CreateServiceUseCase, get_all_service_usecase::GetAllServicesUseCase, schedule_service_usecase::ScheduleServiceUseCase}, appstate::ServiceAppState, infrastructure::database::repository::{address_repository_impl::AddressRepositoryImpl as ServiceAddressRepositoryImpl, consultant_repository_impl::ConsultantRepositoryImpl as ConsultantServiceRepositoryImpl, service_repository_impl::ServiceRepositoryImpl}, presentation::controller::service_controller::service_router}, user::{
+    UserAppState, application::usecase::{create_address_usecase::CreateAddressUseCase, create_user_usecase::CreateUserUseCase, get_all_addresses_usecase::GetAllAddressesUseCase, get_all_users_usecase::GetAllUsersUseCase, update_budget_status_usecase::UpdateBudgetStatusUseCase, update_service_order_status_usecase::UpdateServiceOrderStatusUseCase}, infrastructure::database::repository::{address_repository_impl::AddressRepositoryImpl, service_repository_impl::ServiceRepositoryImpl as UserServiceRepositoryImpl, user_repository_impl::UserRepositoryImpl}, presentation::controller::user_controller::user_router
   }},
-  shared::{infra::{database::db_config::{Database, Db}, error::AppError, service::{hash_service::HashServiceImpl, notification_service::NotificationServiceImpl}, ws::ws_impl::WsHub}, presentation::{controller::ws_controller::handle_socket, types::ApiResult}}
+  shared::{domain::service::payment_budget_service::PaymentBudgetServiceImpl, infra::{database::db_config::{Database, Db}, error::AppError, service::{hash_service::HashServiceImpl, notification_service::NotificationServiceImpl}, ws::ws_impl::WsHub}, presentation::{controller::ws_controller::handle_socket, types::ApiResult}}
 };
 
 pub mod modules;
@@ -41,7 +41,8 @@ pub async fn api() -> Result<(), Box<dyn Error>> {
         get_all_users: Arc::new(GetAllUsersUseCase),
         get_all_addresses: Arc::new(GetAllAddressesUseCase),
         create_address: Arc::new(CreateAddressUseCase),
-        update_budget_status: Arc::new(UpdateBudgetStatusUseCase)
+        update_budget_status: Arc::new(UpdateBudgetStatusUseCase),
+        update_service_order_status: Arc::new(UpdateServiceOrderStatusUseCase)
     };
     
     let consultant_app_state = ConsultantAppState {
@@ -49,13 +50,16 @@ pub async fn api() -> Result<(), Box<dyn Error>> {
         service_repository: Arc::new(ServiceConsultantRepositoryImpl::new(db.clone())),
         notification_service: Arc::new(NotificationServiceImpl::new(db.clone(), hub.clone())),
         hash_service: Arc::new(HashServiceImpl::new()),
+        payment_budget_service: Arc::new(PaymentBudgetServiceImpl),
         get_all_consultant: Arc::new(GetAllConsultantsUseCase),
         create_consultant: Arc::new(CreateConsultantUseCase),
         add_service: Arc::new(AddServiceConsultantUseCase),
         remove_service: Arc::new(RemoveServiceConsultantUseCase),
         find_all_by_service: Arc::new(FindAllByServiceUseCase),
         confirm_scheduled_service: Arc::new(ConfirmServiceScheduledUseCase),
-        create_service_budget: Arc::new(CreateBudgetUseCase)
+        create_service_budget: Arc::new(CreateBudgetUseCase),
+        create_service_order: Arc::new(CreateServiceOrderUseCase),
+        finish_service_order: Arc::new(FinishOrderServiceUseCase)
     };
     
     let service_app_state = ServiceAppState {
@@ -72,7 +76,9 @@ pub async fn api() -> Result<(), Box<dyn Error>> {
         payment_repository: Arc::new(PaymentRepositoryImpl::new(db.clone())),
         service_repository: Arc::new(PaymentServiceRepositoryImpl::new(db.clone())),
         notification_service: Arc::new(NotificationServiceImpl::new(db.clone(), hub.clone())),
+        payment_budget_service: Arc::new(PaymentBudgetServiceImpl),
         create_visit_payment: Arc::new(CreateVisitPaymentUseCase),
+        create_budget_payment: Arc::new(CreateBudgetPaymentUseCase),
         wh_payment_notification: Arc::new(WebHookPaymentNotificationUseCase)
     };
     

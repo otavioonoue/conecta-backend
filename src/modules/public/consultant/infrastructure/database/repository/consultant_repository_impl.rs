@@ -175,4 +175,20 @@ impl ConsultantRepository for ConsultantRepositoryImpl<Database<Pool<Postgres>>>
         
         Ok(())
     }
+    
+     async fn update_service_information_status(&self, service_information: ServiceInformation) -> Result<(), AppError> {
+         let data_service_information = InfrastructureMapper::to_data_service_information(service_information);
+         sqlx::query(
+             "UPDATE service_information si
+                 SET service_step_id = $1
+               WHERE si.id = $2"
+         )
+         .bind(data_service_information.service_step_id)
+         .bind(data_service_information.id)
+         .execute(&*self.db.pool)
+         .await
+         .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+         
+         Ok(())
+    }
 }

@@ -5,8 +5,8 @@ use rust_decimal::Decimal;
 use sqlx::types::Uuid;
 
 use crate::{
-    modules::public::user::domain::entity::{address::Address, service::Service, service_budget::ServiceBudget, service_information::ServiceInformation, user::User},
-    shared::infra::{database::model::{address_model::AddressModel, service_budget_model::ServiceBudgetModel, service_information_model::ServiceInformationModel, service_model::ServiceModel, user_model::UserModel}, helpers::currency::CurrencyHelper},
+    modules::public::user::domain::entity::{address::Address, service::Service, service_budget::ServiceBudget, service_information::ServiceInformation, service_order::ServiceOrder, user::User},
+    shared::infra::{database::model::{address_model::AddressModel, service_budget_model::ServiceBudgetModel, service_information_model::ServiceInformationModel, service_model::ServiceModel, service_order_model::ServiceOrderModel, user_model::UserModel}, helpers::currency::CurrencyHelper},
 };
 
 pub struct InfrastructureMapper;
@@ -124,6 +124,19 @@ impl InfrastructureMapper {
             description: service_budget_data.description,
             service_budget_status_id: service_budget_data.service_budget_status_id,
             created_at: service_budget_data.created_at.timestamp(),
+        }
+    }
+    
+    pub fn to_domain_service_order(service_order_data: ServiceOrderModel) -> ServiceOrder {
+        let final_cost_cents = CurrencyHelper::to_cents(service_order_data.final_cost);
+        ServiceOrder {
+            id: service_order_data.id.to_string(),
+            service_information_id: service_order_data.service_information_id.to_string(),
+            final_cost: final_cost_cents,
+            description: service_order_data.description,
+            service_order_status_id: service_order_data.service_order_status_id,
+            scheduled_to: service_order_data.scheduled_to.timestamp(),
+            scheduled_at: service_order_data.scheduled_at.timestamp(),
         }
     }
 }

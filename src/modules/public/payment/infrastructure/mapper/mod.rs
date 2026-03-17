@@ -4,8 +4,8 @@ use rust_decimal::Decimal;
 use sqlx::types::Uuid;
 
 use crate::{
-    modules::public::{auth::domain::entity::{consultant::Consultant, user::User}, payment::domain::entity::{payment_scheduled::PaymentServiceScheduled, service::Service, service_information::ServiceInformation}},
-    shared::infra::{database::model::{consultant_model::ConsultantModel, payment_scheduled_model::PaymentServiceScheduledModel, service_information_model::ServiceInformationModel, service_model::ServiceModel, user_model::UserModel}, helpers::currency::CurrencyHelper},
+    modules::public::{auth::domain::entity::{consultant::Consultant, user::User}, payment::domain::entity::{service::Service, service_budget::ServiceBudget, service_information::ServiceInformation, service_payment::ServicePayment}},
+    shared::infra::{database::model::{consultant_model::ConsultantModel, service_budget_model::ServiceBudgetModel, service_information_model::ServiceInformationModel, service_model::ServiceModel, service_payment_model::ServicePaymentModel, user_model::UserModel}, helpers::currency::CurrencyHelper},
 };
 
 pub struct InfrastructureMapper;
@@ -96,30 +96,32 @@ impl InfrastructureMapper {
         }
     }
     
-    pub fn to_domain_payment_service_scheduled(pssm: PaymentServiceScheduledModel) -> PaymentServiceScheduled {
-        let cost_cents = CurrencyHelper::to_cents(pssm.cost);
-        PaymentServiceScheduled {
-            id: pssm.id.to_string(),
-            schedule_service_information_id: pssm.schedule_service_information_id.to_string(),
-            user_id: pssm.user_id.to_string(),
-            provider: pssm.provider,
-            provider_payment_id: pssm.provider_payment_id,
-            status: pssm.status,
+    pub fn to_domain_service_payment(spm: ServicePaymentModel) -> ServicePayment {
+        let cost_cents = CurrencyHelper::to_cents(spm.cost);
+        ServicePayment {
+            id: spm.id.to_string(),
+            schedule_service_information_id: spm.schedule_service_information_id.to_string(),
+            user_id: spm.user_id.to_string(),
+            provider: spm.provider,
+            provider_payment_id: spm.provider_payment_id,
+            kind: spm.kind.into(),
+            status: spm.status,
             cost: cost_cents,
-            created_at: pssm.created_at.timestamp(),
+            created_at: spm.created_at.timestamp(),
         }
     }
     
-    pub fn to_data_payment_service_scheduled(pss: PaymentServiceScheduled) -> PaymentServiceScheduledModel {
-        PaymentServiceScheduledModel {
-            id: Uuid::from_str(&pss.id).unwrap_or_default(),
-            schedule_service_information_id: Uuid::from_str(&pss.schedule_service_information_id).unwrap_or_default(),
-            user_id: Uuid::from_str(&pss.user_id).unwrap_or_default(),
-            provider: pss.provider,
-            provider_payment_id: pss.provider_payment_id,
-            status: pss.status,
-            cost: Decimal::new(pss.cost, 2),
-            created_at: DateTime::from_timestamp(pss.created_at, 0)
+    pub fn to_data_service_payment(sp: ServicePayment) -> ServicePaymentModel {
+        ServicePaymentModel {
+            id: Uuid::from_str(&sp.id).unwrap_or_default(),
+            schedule_service_information_id: Uuid::from_str(&sp.schedule_service_information_id).unwrap_or_default(),
+            user_id: Uuid::from_str(&sp.user_id).unwrap_or_default(),
+            provider: sp.provider,
+            provider_payment_id: sp.provider_payment_id,
+            kind: sp.kind.into(),
+            status: sp.status,
+            cost: Decimal::new(sp.cost, 2),
+            created_at: DateTime::from_timestamp(sp.created_at, 0)
                 .unwrap(),
         }
     }
@@ -134,6 +136,33 @@ impl InfrastructureMapper {
             service_step_id: service_information.service_step_id,
             address_id: Uuid::from_str(&service_information.address_id).unwrap_or_default(),
             created_at: DateTime::default(),
+        }
+    }
+    
+    pub fn to_data_service_budget(service_budget: ServiceBudget) -> ServiceBudgetModel {
+        ServiceBudgetModel {
+            id: Uuid::from_str(&service_budget.id).unwrap_or_default(),
+            service_information_id: Uuid::from_str(&service_budget.service_information_id).unwrap_or_default(),
+            service_cost: Decimal::new(service_budget.service_cost, 2),
+            travel_cost: Decimal::new(service_budget.travel_cost, 2),
+            description: service_budget.description,
+            service_budget_status_id: service_budget.service_budget_status_id,
+            created_at: DateTime::from_timestamp(service_budget.created_at, 0)
+                .unwrap(),
+        }
+    }
+    
+    pub fn to_domain_service_budget(service_budget_data: ServiceBudgetModel) -> ServiceBudget {
+        let service_cost_cents = CurrencyHelper::to_cents(service_budget_data.service_cost);
+        let travel_cost_cents = CurrencyHelper::to_cents(service_budget_data.travel_cost);
+        ServiceBudget {
+            id: service_budget_data.id.to_string(),
+            service_information_id: service_budget_data.service_information_id.to_string(),
+            service_cost: service_cost_cents,
+            travel_cost: travel_cost_cents,
+            description: service_budget_data.description,
+            service_budget_status_id: service_budget_data.service_budget_status_id,
+            created_at: service_budget_data.created_at.timestamp(),
         }
     }
 }

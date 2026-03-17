@@ -5,7 +5,7 @@ use http::StatusCode;
 use sqlx::{Pool, Postgres};
 use uuid::Uuid;
 
-use crate::{modules::public::payment::{domain::{entity::{service::Service, service_information::ServiceInformation}, repository::service_repository::ServiceRepository}, infrastructure::mapper::InfrastructureMapper}, shared::infra::{database::{db_config::{Database, Db}, model::{service_information_model::ServiceInformationModel, service_model::ServiceModel}}, error::AppError}};
+use crate::{modules::public::payment::{domain::{entity::{service::Service, service_budget::ServiceBudget, service_information::ServiceInformation}, repository::service_repository::ServiceRepository}, infrastructure::mapper::InfrastructureMapper}, shared::infra::{database::{db_config::{Database, Db}, model::{service_budget_model::ServiceBudgetModel, service_information_model::ServiceInformationModel, service_model::ServiceModel}}, error::AppError}};
 
 pub struct ServiceRepositoryImpl<T: Db> {
     pub db: T
@@ -61,5 +61,27 @@ impl ServiceRepository for ServiceRepositoryImpl<Database<Pool<Postgres>>> {
         .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
         Ok(())
+    }
+    
+    async fn find_budgets_approved_by_service_information_id(&self, service_information_id: String) -> Result<Vec<ServiceBudget>, AppError> {
+        let resp: Vec<ServiceBudgetModel> = sqlx::query_as::<_, ServiceBudgetModel>(
+            "SELECT sb.* 
+               FROM service_information si
+              INNER JOIN services_budgets sb 
+                 ON sb.service_information_id = si.id
+              WHERE sb.service_information_id = $1
+                AND sb.service_budget_status_id = 2"
+        )
+        .bind(Uuid::from_str(&service_information_id).unwrap_or_default())
+        .fetch_all(&*self.db.pool)
+        .await
+        .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+        
+        return Ok(
+            resp
+            .into_iter()
+            .map(|sbm| InfrastructureMapper::to_domain_service_budget(sbm))
+            .collect()
+        );
     }
 }

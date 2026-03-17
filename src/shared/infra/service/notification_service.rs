@@ -5,12 +5,11 @@ use http::StatusCode;
 use sqlx::{Pool, Postgres};
 use uuid::Uuid;
 
-use crate::shared::{application::ws::ws::Ws, domain::entity::{notification::Notification, service_schedule::ServiceSchedule}, infra::{database::{db_config::{Database, Db}}, error::AppError, ws::ws_impl::WsHub}};
+use crate::shared::{application::ws::ws::Ws, domain::entity::{notification::Notification}, infra::{database::{db_config::{Database, Db}}, error::AppError, ws::ws_impl::WsHub}};
 
 #[async_trait]
 pub trait NotificationService: Send + Sync {
     async fn send(&self, notification: Notification, new_status: String) -> Result<(), AppError>;
-    async fn visit_payment_done(&self, service_schedule: ServiceSchedule) -> Result<(), AppError>;
 }
 
 pub struct NotificationServiceImpl<T: Db> {
@@ -33,6 +32,10 @@ impl NotificationService for NotificationServiceImpl<Database<Pool<Postgres>>> {
             "BUDGET_RECEIVED" => ("Orçamento recebido", ""),
             "BUDGET_CONFIRMED" => ("Orçamento confirmado", ""),
             "BUDGET_DENIED" => ("Orçamento negado", ""),
+            "SERVICE_ORDER_RECEIVED" => ("Ordem de Serviço recebida", ""),
+            "SERVICE_ORDER_CONFIRMED" => ("Ordem de Serviço confirmada", ""),
+            "SERVICE_ORDER_DENIED" => ("Ordem de Serviço recusada", ""),
+            "SERVICE_ORDER_FINISHED" => ("Ordem de Serviço finalizada", ""),
             "Ordem de serviço" => ("Ordem de serviço", ""),
             _ => ("Pedido atualizado", "O status do pedido mudou"),
         };
@@ -56,9 +59,9 @@ impl NotificationService for NotificationServiceImpl<Database<Pool<Postgres>>> {
         Ok(())
     }
     
-    async fn visit_payment_done(&self, service_schedule: ServiceSchedule) -> Result<(), AppError> {
+    // async fn visit_payment_done(&self, service_schedule: ServiceSchedule) -> Result<(), AppError> {
         
         
-        Ok(())
-    }
+    //     Ok(())
+    // }
 }

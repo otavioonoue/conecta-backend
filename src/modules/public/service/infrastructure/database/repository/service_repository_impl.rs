@@ -113,8 +113,8 @@ impl ServiceRepository for ServiceRepositoryImpl<Database<Pool<Postgres>>> {
         Ok(service_information_id.to_string())
     }
     
-    async fn find_by_user(&self, user_id: String) -> Result<(), AppError> {
-        let resp: Vec<ServiceModel> = sqlx::query_as::<_, ServiceModel>(
+    async fn find_by_user(&self, _: String) -> Result<(), AppError> {
+        let _: Vec<ServiceModel> = sqlx::query_as::<_, ServiceModel>(
             "SELECT ss.id        as scheduled_id,
                     s.name       as name,
                     s.travel_cost,

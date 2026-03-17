@@ -7,5 +7,6 @@ pub mod service_information_model;
 pub mod service_scheduled_model;
 pub mod service_scheduled_with_address;
 pub mod notification_model;
-pub mod payment_scheduled_model;
+pub mod service_payment_model;
 pub mod service_budget_model;
+pub mod service_order_model;

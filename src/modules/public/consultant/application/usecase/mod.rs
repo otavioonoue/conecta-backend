@@ -6,3 +6,5 @@ pub mod remove_service_consultant_usecase;
 pub mod find_all_by_service_usecase;
 pub mod confirm_service_scheduled_usecase;
 pub mod create_budget_usecase;
+pub mod create_service_order_usecase;
+pub mod finish_order_service_usecase;

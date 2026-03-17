@@ -1,7 +1,7 @@
 use axum::{Json, Router, extract::{Path, State}, http::StatusCode, response::IntoResponse, routing::{delete, get, post}};
 use validator::Validate;
 
-use crate::{modules::public::{auth::infrastructure::jwt::claim::{AdminOnly, Claims}, consultant::{application::dto::{add_service_dto::AddServiceDto, create_budget_dto::CreateBudgetDto, create_consultant_dto::CreateConsultantDto, remove_service_dto::RemoveServiceDto}, appstate::ConsultantAppState}}, shared::presentation::{response::DefaultResponse, types::ApiResult}};
+use crate::{modules::public::{auth::infrastructure::jwt::claim::{AdminOnly, Claims}, consultant::{application::dto::{add_service_dto::AddServiceDto, create_budget_dto::CreateBudgetDto, create_consultant_dto::CreateConsultantDto, create_service_order_dto::CreateServiceOrderDto, remove_service_dto::RemoveServiceDto}, appstate::ConsultantAppState}}, shared::presentation::{response::DefaultResponse, types::ApiResult}};
 
 pub fn consultant_router(app_state: ConsultantAppState) -> Router {
     Router::new()
@@ -12,6 +12,8 @@ pub fn consultant_router(app_state: ConsultantAppState) -> Router {
         .route("/find_all_by_service/{service_id}", get(find_all_by_service))
         .route("/service/confirm_service_scheduled/{service_information_id}", post(confirm_service_scheduled))
         .route("/service/budget/{service_information_id}", post(create_budget))
+        .route("/service/service_order/{service_information_id}", post(create_service_order))
+        .route("/service/finish/{service_information_id}", post(finish_order_service))
         .with_state(app_state)
 }
 
@@ -79,6 +81,25 @@ async fn create_budget(
     Path(service_information_id): Path<String>,
     Json(dto): Json<CreateBudgetDto>
 ) -> ApiResult<impl IntoResponse> {
-    let resp = s.create_service_budget.execute((service_information_id, dto), s.clone()).await?;
+    let resp = s.create_service_budget.execute((claims, service_information_id, dto), s.clone()).await?;
     Ok(DefaultResponse::ok(StatusCode::CREATED, resp).into_response())
+}
+
+async fn create_service_order(
+    State(s): State<ConsultantAppState>,
+    claims: Claims,
+    Path(service_information_id): Path<String>,
+    Json(dto): Json<CreateServiceOrderDto>
+) -> ApiResult<impl IntoResponse> {
+    let resp = s.create_service_order.execute((claims, service_information_id, dto), s.clone()).await?;
+    Ok(DefaultResponse::ok(StatusCode::CREATED, resp).into_response())
+}
+
+async fn finish_order_service(
+    State(s): State<ConsultantAppState>,
+    claims: Claims,
+    Path(service_information_id): Path<String>
+) -> ApiResult<impl IntoResponse> {
+    let resp = s.finish_service_order.execute((claims, service_information_id), s.clone()).await?;
+    Ok(DefaultResponse::ok(StatusCode::OK, resp).into_response())
 }

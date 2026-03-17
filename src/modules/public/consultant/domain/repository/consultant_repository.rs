@@ -13,4 +13,5 @@ pub trait ConsultantRepository: Send + Sync {
   async fn add_service(&self, consultant_id: String, service_id: String) -> Result<(), AppError>;
   async fn remove_service(&self, consultant_id: String, service_id: String) -> Result<(), AppError>;
   async fn confirm_scheduled_service(&self, consultant_id: String, service_information: ServiceInformation) -> Result<(), AppError>;
+  async fn update_service_information_status(&self, service_information: ServiceInformation) -> Result<(), AppError>;
 }

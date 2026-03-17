@@ -1,26 +1,31 @@
 use async_trait::async_trait;
 use http::StatusCode;
-use rust_decimal::prelude::ToPrimitive;
 
-use crate::{modules::public::consultant::{application::{dto::create_budget_dto::CreateBudgetDto, usecase::usecase::UseCase}, appstate::ConsultantAppState, domain::entity::service_budget::ServiceBudget}, shared::{domain::entity::notification::Notification, infra::{error::AppError, helpers::currency::CurrencyHelper}}};
+use crate::{modules::public::{auth::infrastructure::jwt::claim::Claims, consultant::{application::{dto::create_budget_dto::CreateBudgetDto, usecase::usecase::UseCase}, appstate::ConsultantAppState, domain::entity::service_budget::ServiceBudget}}, shared::{domain::entity::notification::Notification, infra::{error::AppError, helpers::currency::CurrencyHelper}}};
 
 pub struct CreateBudgetUseCase;
 
-type Input = (String, CreateBudgetDto);
+type Input = (Claims, String, CreateBudgetDto);
 type Output = Result<(), AppError>;
 
 #[async_trait]
 impl UseCase<Input, Output> for CreateBudgetUseCase {
-    async fn execute(&self, (service_information_id, budget_dto): Input, s: ConsultantAppState) -> Output {
+    async fn execute(&self, (claims, service_information_id, budget_dto): Input, s: ConsultantAppState) -> Output {
         let service_information_optional = s.service_repository.find_service_information_by_id(service_information_id).await?;
+        
+        if let Some(service_information) = service_information_optional.as_ref() {
+            if service_information.service_step_id != 5 {
+                return Err(AppError::new(StatusCode::BAD_REQUEST, "The visit hasn't been confirmed yet"))
+            }
+            
+            if claims.sub != *service_information.consultant_id.as_ref().unwrap() {
+                return Err(AppError::new(StatusCode::NOT_FOUND, "Service Information not found"));
+            }
+        }
         
         let Some(mut service_information) = service_information_optional else {
             return Err(AppError::new(StatusCode::NOT_FOUND, "Service Information not found"));
         };
-        
-        if service_information.service_step_id != 4 {
-            return Err(AppError::new(StatusCode::BAD_REQUEST, "The visit hasn't been confirmed yet"))
-        }
         
         let Some(service) = s.service_repository.find_service_by_id(service_information.service_id.clone()).await? else {
             return Err(AppError::new(StatusCode::NOT_FOUND, "Service not found"));
@@ -47,7 +52,7 @@ impl UseCase<Input, Output> for CreateBudgetUseCase {
         
         s.service_repository.create_service_budget(budget).await?;
         
-        service_information.service_step_id = 5;
+        service_information.service_step_id = 6;
         
         s.service_repository.update_service_information(service_information).await?;
         

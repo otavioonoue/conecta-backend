@@ -3,13 +3,13 @@ use axum::{
   extract::{Path, State},
   http::StatusCode,
   response::IntoResponse,
-  routing::{get, patch, post},
+  routing::{get, post},
 };
 use validator::Validate;
 
 use crate::{
   modules::public::{auth::infrastructure::jwt::claim::Claims, user::{
-      UserAppState, application::dto::{budget_status_dto::BudgetStatusDto, create_address_dto::CreateAddressDto, create_user_dto::CreateUserDto},
+      UserAppState, application::dto::{budget_status_dto::BudgetStatusDto, create_address_dto::CreateAddressDto, create_user_dto::CreateUserDto, update_service_order_status_dto::UpdateServiceOrderStatusDto},
   }},
   shared::presentation::{response::DefaultResponse, types::ApiResult},
 };
@@ -21,6 +21,7 @@ pub fn user_router(app_state: UserAppState) -> Router {
         .route("/addresses", get(get_all_addresses))
         .route("/address", post(create_address))
         .route("/budget/status/{service_budget_id}", post(update_budget_status))
+        .route("/service_order/status/{service_order_id}", post(update_service_order_status))
         .with_state(app_state)
 }
 
@@ -71,6 +72,19 @@ async fn update_budget_status(
     dto.validate()?;
     
     let resp = s.update_budget_status.execute((claims, service_budget_id, dto), s.clone()).await?;
+    
+    Ok(DefaultResponse::ok(StatusCode::OK, resp).into_response())
+}
+
+async fn update_service_order_status(
+    claims: Claims,
+    State(s): State<UserAppState>,
+    Path(service_order_id): Path<String>,
+    Json(dto): Json<UpdateServiceOrderStatusDto>
+) -> ApiResult<impl IntoResponse> {
+    dto.validate()?;
+    
+    let resp = s.update_service_order_status.execute((claims, service_order_id, dto), s.clone()).await?;
     
     Ok(DefaultResponse::ok(StatusCode::OK, resp).into_response())
 }

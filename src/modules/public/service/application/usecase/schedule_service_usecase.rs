@@ -1,7 +1,6 @@
 use async_trait::async_trait;
 use axum::http::StatusCode;
 use chrono::{Duration, Utc};
-use rand::seq::IndexedRandom;
 
 use crate::{modules::public::{auth::infrastructure::jwt::claim::Claims, service::{application::{dto::schedule_service_dto::{ScheduleServiceDto, ScheduleServiceResponse}, usecase::UseCase}, appstate::ServiceAppState, domain::entity::{service_information::ServiceInformation, service_schedule::ServiceSchedule}}}, shared::infra::error::AppError};
 

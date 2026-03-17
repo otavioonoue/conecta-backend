@@ -21,16 +21,20 @@ impl UseCase<Input, Output> for UpdateBudgetStatusUseCase {
             return Err(AppError::new(StatusCode::NOT_FOUND, "Service Information not found"));
         };
         
-        if service_information.service_step_id != 5 {
-            return Err(AppError::new(StatusCode::BAD_REQUEST, "The visit hasn't been confirmed yet"))
+        if claims.sub != service_information.user_id {
+            return Err(AppError::new(StatusCode::NOT_FOUND, "Service Information not found"));
+        }
+        
+        if service_information.service_step_id != 6 {
+            return Err(AppError::new(StatusCode::UNPROCESSABLE_ENTITY, "The visit hasn't been confirmed yet"))
         }
         
         if let Status::APPROVED = budget_dto.status {
             service_budget.service_budget_status_id = 2;
-            service_information.service_step_id = 6;
+            service_information.service_step_id = 7;
         } else {
             service_budget.service_budget_status_id = 3;
-            service_information.service_step_id = 7;
+            service_information.service_step_id = 8;
         }
         
         s.service_repository.update_service_budget_status(service_budget).await?;
