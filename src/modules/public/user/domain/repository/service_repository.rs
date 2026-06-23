@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 
-use crate::{modules::public::user::domain::entity::{service::Service, service_budget::ServiceBudget, service_information::ServiceInformation, service_order::ServiceOrder}, shared::infra::error::AppError};
+use crate::{modules::public::user::domain::entity::{scheduled_service_row::ScheduledServiceRow, service::Service, service_budget::ServiceBudget, service_information::ServiceInformation, service_order::ServiceOrder}, shared::infra::error::AppError};
 
 #[async_trait]
 pub trait ServiceRepository: Send + Sync {
@@ -13,4 +13,5 @@ pub trait ServiceRepository: Send + Sync {
     async fn update_service_budget_status(&self, service_budget: ServiceBudget) -> Result<(), AppError>;
     async fn find_service_order_by_id(&self, service_order_id: String) -> Result<Option<ServiceOrder>, AppError>;
     async fn update_service_order_status(&self, service_order: ServiceOrder) -> Result<(), AppError>;
+    async fn find_all_scheduled_service(&self, user_id: String) -> Result<Vec<ScheduledServiceRow>, AppError>;
 }

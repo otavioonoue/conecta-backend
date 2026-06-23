@@ -26,7 +26,7 @@ impl UseCase<Input, Output> for WebHookPaymentNotificationUseCase {
             
             s.payment_repository.update_payment(service_payment.clone()).await?;
             
-            let service_information_optional = s.service_repository.find_service_information_by_id(service_payment.schedule_service_information_id)
+            let service_information_optional = s.service_repository.find_service_information_by_id(service_payment.schedule_service_information_id.clone())
                 .await?;
             
             let Some(mut service_information) = service_information_optional else {
@@ -37,6 +37,9 @@ impl UseCase<Input, Output> for WebHookPaymentNotificationUseCase {
                 PaymentKind::Budget => service_information.service_step_id = 9,
                 PaymentKind::Scheduled => service_information.service_step_id = 3,
             }
+            
+            println!("Service Payment ID: {:#?}", service_payment.schedule_service_information_id);
+            println!("Service Payment Kind: {:#?}", service_payment.kind);
             
             s.service_repository.update_service_information(service_information.clone()).await?;
             

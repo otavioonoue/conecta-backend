@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{modules::public::{auth::infrastructure::jwt::claim::Claims, user::{application::{dto::{budget_status_dto::BudgetStatusDto, create_address_dto::CreateAddressDto, create_user_dto::CreateUserDto, update_service_order_status_dto::UpdateServiceOrderStatusDto}, usecase::UseCase}, domain::{entity::{address::Address, user::User}, repository::{address_repository::AddressRepository, service_repository::ServiceRepository, user_repository::UserRepository}}}}, shared::infra::{error::AppError, service::{hash_service::HashService, notification_service::NotificationService}}};
+use crate::{modules::public::{auth::infrastructure::jwt::claim::Claims, user::{application::{dto::{budget_status_dto::BudgetStatusDto, create_address_dto::CreateAddressDto, create_user_dto::CreateUserDto, update_service_order_status_dto::UpdateServiceOrderStatusDto}, usecase::UseCase}, domain::{entity::{address::Address, scheduled_service_row::ScheduledServiceRow, user::User}, repository::{address_repository::AddressRepository, service_repository::ServiceRepository, user_repository::UserRepository}}}}, shared::infra::{error::AppError, service::{hash_service::HashService, notification_service::NotificationService}}};
 
 pub mod application;
 pub mod domain;
@@ -19,5 +19,6 @@ pub struct UserAppState {
     pub get_all_addresses: Arc<dyn UseCase<Claims, Result<Vec<Address>, AppError>>>,
     pub create_address: Arc<dyn UseCase<(Claims, CreateAddressDto), Result<(), AppError>>>,
     pub update_budget_status: Arc<dyn UseCase<(Claims, String, BudgetStatusDto), Result<(), AppError>>>,
-    pub update_service_order_status: Arc<dyn UseCase<(Claims, String, UpdateServiceOrderStatusDto), Result<(), AppError>>>
+    pub update_service_order_status: Arc<dyn UseCase<(Claims, String, UpdateServiceOrderStatusDto), Result<(), AppError>>>,
+    pub get_all_scheduled_services: Arc<dyn UseCase<Claims, Result<Vec<ScheduledServiceRow>, AppError>>>
 }

@@ -15,11 +15,13 @@ impl UseCase<Input, Output> for CreateVisitPaymentUseCase {
     
         let optional_service_information = s.service_repository.find_service_information_by_id(input.service_information_id).await?;
     
-        let Some(service_information) = optional_service_information else {
+        let Some(mut service_information) = optional_service_information else {
             return Err(AppError::new(StatusCode::FORBIDDEN, "Service Information not found for your account"));
         };
+        
+        service_information.service_step_id = 3;
     
-        let optional_service = s.service_repository.find_service_by_id(service_information.service_id).await?;
+        let optional_service = s.service_repository.find_service_by_id(service_information.service_id.clone()).await?;
         
         let Some(service) = optional_service else {
            	return Err(AppError::new(StatusCode::NOT_FOUND, "Service not found"));
@@ -34,17 +36,20 @@ impl UseCase<Input, Output> for CreateVisitPaymentUseCase {
         // For while in this POC...
         let service_payment = ServicePayment {
             id: String::from(""),
-            schedule_service_information_id: service_information.id,
-            user_id: service_information.user_id,
+            schedule_service_information_id: service_information.id.clone(),
+            user_id: service_information.user_id.clone(),
             provider: String::from("ASAAS"), 
             provider_payment_id: payment_response.payment_id.clone(),
             kind: PaymentKind::Scheduled,
-            status: String::from("PENDENT"),
+            status: String::from("PENDING"),
             cost: service.travel_cost,
             created_at: 0
         };
         
+        
+        
         s.payment_repository.create_service_payment(service_payment).await?;
+        s.service_repository.update_service_information(service_information).await?;
         
         Ok(payment_response)
     }

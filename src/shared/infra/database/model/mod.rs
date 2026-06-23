@@ -10,3 +10,4 @@ pub mod notification_model;
 pub mod service_payment_model;
 pub mod service_budget_model;
 pub mod service_order_model;
+pub mod scheduled_service_row_model;

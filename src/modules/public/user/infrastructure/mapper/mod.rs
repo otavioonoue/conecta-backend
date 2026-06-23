@@ -5,8 +5,8 @@ use rust_decimal::Decimal;
 use sqlx::types::Uuid;
 
 use crate::{
-    modules::public::user::domain::entity::{address::Address, service::Service, service_budget::ServiceBudget, service_information::ServiceInformation, service_order::ServiceOrder, user::User},
-    shared::infra::{database::model::{address_model::AddressModel, service_budget_model::ServiceBudgetModel, service_information_model::ServiceInformationModel, service_model::ServiceModel, service_order_model::ServiceOrderModel, user_model::UserModel}, helpers::currency::CurrencyHelper},
+    modules::public::user::domain::entity::{address::Address, scheduled_service_row::ScheduledServiceRow, service::Service, service_budget::ServiceBudget, service_information::ServiceInformation, service_order::ServiceOrder, user::User},
+    shared::infra::{database::model::{address_model::AddressModel, scheduled_service_row_model::ScheduledServiceRowModel, service_budget_model::ServiceBudgetModel, service_information_model::ServiceInformationModel, service_model::ServiceModel, service_order_model::ServiceOrderModel, user_model::UserModel}, helpers::currency::CurrencyHelper},
 };
 
 pub struct InfrastructureMapper;
@@ -137,6 +137,26 @@ impl InfrastructureMapper {
             service_order_status_id: service_order_data.service_order_status_id,
             scheduled_to: service_order_data.scheduled_to.timestamp(),
             scheduled_at: service_order_data.scheduled_at.timestamp(),
+        }
+    }
+    
+    pub fn to_domain_scheduled_service_row(ssrm: ScheduledServiceRowModel) -> ScheduledServiceRow {
+        let travel_cost_cents = CurrencyHelper::to_cents(ssrm.travel_cost);
+        ScheduledServiceRow { 
+            id: ssrm.id.to_string(), 
+            service_information_id: ssrm.service_information_id.to_string(), 
+            service_status_id: ssrm.service_status_id, 
+            description: ssrm.description, 
+            scheduled_at: ssrm.scheduled_at.timestamp(), 
+            scheduled_to: ssrm.scheduled_to.timestamp(), 
+            service_name: ssrm.service_name,
+            travel_cost: travel_cost_cents,
+            service_step_id: ssrm.service_step_id,
+            street: ssrm.street, 
+            number: ssrm.number, 
+            neighborhood: ssrm.neighborhood, 
+            city: ssrm.city, 
+            cep: ssrm.cep 
         }
     }
 }

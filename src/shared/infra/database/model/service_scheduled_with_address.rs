@@ -10,7 +10,7 @@ pub struct ScheduledServiceWithAddress {
 
     pub address_id: Uuid,        // a.id
     pub cep: String,             // a.cep
-    pub number: i32,             // a.number
+    pub number: String,             // a.number
     pub street: String,          // a.street
     pub neighborhood: String,    // a.neighborhood
     pub city: String,            // a.city

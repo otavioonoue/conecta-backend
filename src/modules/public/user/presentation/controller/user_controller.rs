@@ -22,6 +22,7 @@ pub fn user_router(app_state: UserAppState) -> Router {
         .route("/address", post(create_address))
         .route("/budget/status/{service_budget_id}", post(update_budget_status))
         .route("/service_order/status/{service_order_id}", post(update_service_order_status))
+        .route("/scheduled_service", get(get_all_scheduled_services))
         .with_state(app_state)
 }
 
@@ -36,7 +37,6 @@ async fn create(
     Json(dto): Json<CreateUserDto>,
 ) -> ApiResult<impl IntoResponse> {
     dto.validate()?;
-    
     let resp = s.create_user.execute(dto, s.clone()).await?;
     
     Ok(DefaultResponse::ok(StatusCode::CREATED, resp).into_response())
@@ -86,5 +86,13 @@ async fn update_service_order_status(
     
     let resp = s.update_service_order_status.execute((claims, service_order_id, dto), s.clone()).await?;
     
+    Ok(DefaultResponse::ok(StatusCode::OK, resp).into_response())
+}
+
+async fn get_all_scheduled_services(
+    claims: Claims,
+    State(s): State<UserAppState>,
+) -> ApiResult<impl IntoResponse> {
+    let resp = s.get_all_scheduled_services.execute(claims, s.clone()).await?;
     Ok(DefaultResponse::ok(StatusCode::OK, resp).into_response())
 }

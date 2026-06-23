@@ -5,7 +5,7 @@ use http::StatusCode;
 use sqlx::{Pool, Postgres};
 use uuid::Uuid;
 
-use crate::{modules::public::user::{domain::{entity::{service::Service, service_budget::ServiceBudget, service_information::ServiceInformation, service_order::ServiceOrder}, repository::service_repository::ServiceRepository}, infrastructure::mapper::InfrastructureMapper}, shared::infra::{database::{db_config::{Database, Db}, model::{service_budget_model::ServiceBudgetModel, service_information_model::ServiceInformationModel, service_model::ServiceModel, service_order_model::ServiceOrderModel}}, error::AppError}};
+use crate::{modules::public::user::{domain::{entity::{scheduled_service_row::ScheduledServiceRow, service::Service, service_budget::ServiceBudget, service_information::ServiceInformation, service_order::ServiceOrder}, repository::service_repository::ServiceRepository}, infrastructure::mapper::InfrastructureMapper}, shared::infra::{database::{db_config::{Database, Db}, model::{scheduled_service_row_model::ScheduledServiceRowModel, service_budget_model::ServiceBudgetModel, service_information_model::ServiceInformationModel, service_model::ServiceModel, service_order_model::ServiceOrderModel}}, error::AppError}};
 
 pub struct ServiceRepositoryImpl<T: Db> {
     pub db: T
@@ -163,5 +163,36 @@ impl ServiceRepository for ServiceRepositoryImpl<Database<Pool<Postgres>>> {
         .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
         
         Ok(())
+    }
+    
+    async fn find_all_scheduled_service(&self, user_id: String) -> Result<Vec<ScheduledServiceRow>, AppError> {
+        let res = sqlx::query_as::<_, ScheduledServiceRowModel>(
+            "SELECT ss.*,
+                    s.\"name\" AS service_name,
+                    s.travel_cost,
+                    si.service_step_id,
+            	    a.street,
+            	    a.\"number\",
+            	    a.neighborhood,
+            	    a.city,
+            	    a.cep 
+              FROM
+           	    services_scheduled ss
+                INNER JOIN service_information si ON si.id = ss.service_information_id
+                INNER JOIN addresses a ON a.id = si.address_id
+                INNER JOIN services s ON s.id = si.service_id
+             WHERE si.user_id = $1
+            "
+        )
+        .bind(Uuid::from_str(&user_id).unwrap_or_default())
+        .fetch_all(&*self.db.pool)
+        .await
+        .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+        
+        Ok(
+            res.into_iter()
+                .map(|ssrm| InfrastructureMapper::to_domain_scheduled_service_row(ssrm))
+                .collect()
+        )
     }
 }

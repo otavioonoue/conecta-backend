@@ -1,9 +1,12 @@
+use std::str::FromStr;
+
 use chrono::{DateTime, Utc};
+use http::StatusCode;
 use rust_decimal::Decimal;
 use sqlx::prelude::FromRow;
 use uuid::Uuid;
 
-use crate::modules::public::payment::domain::entity::service_payment::PaymentKind;
+use crate::{modules::public::payment::domain::entity::service_payment::PaymentKind, shared::infra::error::AppError};
 
 #[derive(FromRow)]
 pub struct ServicePaymentModel {
@@ -30,6 +33,19 @@ impl From<PaymentKindModel> for PaymentKind {
         match value {
             PaymentKindModel::Budget => Self::Budget,
             PaymentKindModel::Scheduled => Self::Scheduled
+        }
+    }
+}
+
+impl FromStr for PaymentKindModel {
+    type Err = AppError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        
+        match s {
+            "BUDGET" => Ok(Self::Budget),
+            "SCHEDULED" => Ok(Self::Scheduled),
+            _ => Err(AppError::new(StatusCode::NOT_ACCEPTABLE, "PaymentKind not acceptable"))
         }
     }
 }

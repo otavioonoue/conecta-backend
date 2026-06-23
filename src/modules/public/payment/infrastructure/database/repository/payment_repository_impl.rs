@@ -5,7 +5,7 @@ use axum::http::StatusCode;
 use sqlx::{Pool, Postgres};
 use uuid::Uuid;
 
-use crate::{modules::public::payment::{domain::{entity::service_payment::ServicePayment, repository::payment_repository::PaymentRepository}, infrastructure::mapper::InfrastructureMapper}, shared::infra::{database::{db_config::{Database, Db}, model::service_payment_model::ServicePaymentModel}, error::AppError}};
+use crate::{modules::public::payment::{domain::{entity::service_payment::ServicePayment, repository::payment_repository::PaymentRepository}, infrastructure::mapper::InfrastructureMapper}, shared::infra::{database::{db_config::{Database, Db}, model::service_payment_model::{PaymentKindModel, ServicePaymentModel}}, error::AppError}};
 
 pub struct PaymentRepositoryImpl<T: Db> {
     pub db: T
@@ -41,13 +41,15 @@ impl PaymentRepository for PaymentRepositoryImpl<Database<Pool<Postgres>>> {
         Ok(())
     }
     
-    async fn find_by_service_information_id(&self, service_information_id: String) -> Result<Option<ServicePayment>, AppError> {
+    async fn find_by_service_information_id(&self, service_information_id: String, kind: String) -> Result<Option<ServicePayment>, AppError> {
         let resp: Option<ServicePaymentModel> = sqlx::query_as::<_, ServicePaymentModel>(
             "SELECT * 
                FROM service_payments sp
-              WHERE sp.schedule_service_information_id = $1"
+              WHERE sp.schedule_service_information_id = $1
+                AND sp.kind = $2"
         )
         .bind(Uuid::from_str(&service_information_id).unwrap_or_default())
+        .bind(PaymentKindModel::from_str(&kind)?)
         .fetch_optional(&*self.db.pool)
         .await
         .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;

@@ -15,14 +15,14 @@ impl UseCase<Input, Output> for CreateBudgetPaymentUseCase {
     
         let optional_service_information = s.service_repository.find_service_information_by_id(input.service_information_id).await?;
     
-        let Some(service_information) = optional_service_information else {
+        let Some(mut service_information) = optional_service_information else {
             return Err(AppError::new(StatusCode::FORBIDDEN, "Service Information not found for your account"));
         };
         
-        // if service_information.service_step_id != 7 {
-        //     return Err(AppError::new(StatusCode::UNPROCESSABLE_ENTITY, "The service budget hasn't been confirmed yet"))
-        // }
-        // service_information.service_step_id = 9;
+        if service_information.service_step_id != 7 {
+            return Err(AppError::new(StatusCode::UNPROCESSABLE_ENTITY, "The service budget hasn't been confirmed yet"))
+        }
+        service_information.service_step_id = 9;
         
         let services_budgets = s.service_repository.find_budgets_approved_by_service_information_id(service_information.id.clone()).await?;
         

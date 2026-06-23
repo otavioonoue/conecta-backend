@@ -2,7 +2,7 @@ use serde::Serialize;
 
 use crate::shared::infra::database::model::service_payment_model::PaymentKindModel;
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Clone, Debug)]
 pub struct ServicePayment {
     pub id: String,
     pub schedule_service_information_id: String,
@@ -15,7 +15,7 @@ pub struct ServicePayment {
     pub created_at: i64
 }
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Clone, Debug)]
 pub enum PaymentKind {
     Budget,
     Scheduled
